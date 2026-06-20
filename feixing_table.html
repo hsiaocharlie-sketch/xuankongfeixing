@@ -1,0 +1,321 @@
+﻿<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="飛星全表">
+<meta name="theme-color" content="#f5f0e8">
+<link rel="apple-touch-icon" href="icon-feixing.png">
+<link rel="manifest" href="manifest-feixing.json">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>玄空飛星全表</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#f5f0e8;font-family:Arial,sans-serif;color:#1a1208;padding:1rem 0.7rem}
+h1{text-align:center;font-size:1.5rem;letter-spacing:.2em;margin-bottom:.2rem}
+.subtitle{text-align:center;font-size:.73rem;color:#7a6e5f;margin-bottom:.5rem}
+.legend{display:flex;gap:1rem;justify-content:center;font-size:.7rem;color:#7a6e5f;margin-bottom:.6rem}
+.legend span{display:flex;align-items:center;gap:.3rem}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.dot-yun{background:#1a1208}.dot-zuo{background:#1a3a6e}.dot-xiang{background:#1a6e3c}
+.controls{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;
+  gap:.5rem 1rem;margin-bottom:.8rem;padding:.5rem .7rem;
+  background:rgba(255,255,255,.5);border:1px solid #c8b89a}
+.controls label{font-size:.8rem;white-space:nowrap}
+.controls select{padding:.25rem .5rem;font-size:.82rem;border:1px solid #c8b89a;
+  background:#faf7f0;color:#1a1208;cursor:pointer;outline:none}
+.controls select:focus{border-color:#8b6914}
+.ctrl-sep{width:1px;height:1.1rem;background:#c8b89a}
+#yun-title{font-size:1rem;font-weight:bold;color:#7a3b1e;letter-spacing:.2em;
+  text-align:center;padding:.35rem 0;border-top:2px solid #c8b89a;
+  border-bottom:1px solid #c8b89a;margin-bottom:.4rem;background:#ede4d0}
+#chart-list{}
+.dir-row{display:flex;align-items:center;gap:7px;margin-bottom:4px;
+  padding:3px 5px;background:rgba(255,255,255,.35);border:1px solid #ddd4bb}
+.dir-label{width:50px;min-width:50px;text-align:center;font-size:.7rem;line-height:1.7}
+.dir-label .zn{font-weight:bold;font-size:.8rem}
+.dir-label .xn{color:#7a3b1e;font-size:.68rem}
+.dir-label .fi{font-size:.56rem;color:#9a8e7f}
+canvas{width:88px;height:88px;min-width:88px}
+.palace-grid{display:grid;grid-template-columns:repeat(3,60px);
+  grid-template-rows:repeat(3,52px);border:2px solid #1a1208}
+.cell{border:1px solid #c8b89a;background:#e8dfc8;
+  display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;position:relative}
+.cell.cc{background:#ddd4bb}
+.cdir{position:absolute;top:2px;left:50%;transform:translateX(-50%);
+  font-size:.48rem;color:#9a8e7f;white-space:nowrap;z-index:2}
+.cell::after{content:"";position:absolute;top:50%;left:5%;width:90%;height:1px;
+  background:rgba(180,160,120,.3);z-index:1}
+.cell::before{content:"";position:absolute;left:50%;top:5%;height:90%;width:1px;
+  background:rgba(180,160,120,.3);z-index:1}
+.q{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:2px}
+.q-tl{grid-column:1;grid-row:1}.q-tr{grid-column:2;grid-row:1}
+.q-bl{grid-column:1;grid-row:2}.q-br{grid-column:2;grid-row:2}
+.sn{font-size:1.2rem;font-weight:bold;line-height:1}
+.sy{color:#1a1208}.sz{color:#1a3a6e}.sx{color:#1a6e3c}
+.tag-col{display:flex;flex-direction:column;gap:3px;justify-content:center;
+  min-width:72px;padding-left:4px}
+.gt{font-size:.63rem;font-weight:bold;padding:2px 5px;border-radius:3px;
+  white-space:nowrap;letter-spacing:.03em;text-align:center;margin-bottom:1px}
+.gt-wang        {background:#ffeaa0;color:#7a5200;border:1px solid #d4a800}
+.gt-shang       {background:#d0e8ff;color:#1a3a6e;border:1px solid #6090c0}
+.gt-shuangzuo   {background:#ffd6d6;color:#7a1a1a;border:1px solid #c06060}
+.gt-shuangxiang {background:#ffd6d6;color:#7a1a1a;border:1px solid #c06060}
+.gt-heshi       {background:#d8f0d8;color:#1a5a1a;border:1px solid #60a060}
+.gt-fuyin       {background:#e8e0f8;color:#3a1a6e;border:1px solid #9080c0}
+.gt-fanyin      {background:#f8e8e0;color:#6e2a1a;border:1px solid #c09080}
+.gt-fuyin-cell  {background:#f3f0fc;color:#5a4a8e;border:1px solid #c0b8e0;font-weight:normal}
+.gt-fanyin-cell {background:#fcf0ec;color:#8e4a3a;border:1px solid #e0b8a8;font-weight:normal}
+.gt-sanban      {background:#fff0cc;color:#6e4a00;border:1px solid #c0a040}
+.gt-dajie       {background:#e0f0f8;color:#1a4a6e;border:1px solid #6090b0}
+.cell-tags{display:flex;flex-direction:column;gap:2px;margin-top:2px;
+  padding-top:2px;border-top:1px dotted #c8b89a}
+.no-result{text-align:center;color:#9a8e7f;padding:2rem;font-size:.85rem}
+</style>
+</head>
+<body>
+<h1>玄空飛星全表</h1>
+<p class="subtitle">一運至九運 · 二十四山向 · 運盤·坐盤·向盤</p>
+<div class="legend">
+  <span><i class="dot dot-yun"></i>運盤</span>
+  <span><i class="dot dot-zuo"></i>坐盤（山星）</span>
+  <span><i class="dot dot-xiang"></i>向盤（向星）</span>
+</div>
+<div class="controls">
+  <label>運：</label>
+  <select id="sel-yun" onchange="applyFilter()">
+    <option value="1">一運（1864-1883）</option>
+    <option value="2">二運（1884-1903）</option>
+    <option value="3">三運（1904-1923）</option>
+    <option value="4">四運（1924-1943）</option>
+    <option value="5">五運（1944-1963）</option>
+    <option value="6">六運（1964-1983）</option>
+    <option value="7">七運（1984-2003）</option>
+    <option value="8" selected>八運（2004-2023）</option>
+    <option value="9">九運（2024-2043）</option>
+  </select>
+  <div class="ctrl-sep"></div>
+  <label>格局：</label>
+  <select id="sel-geju" onchange="applyFilter()">
+    <option value="">全部</option>
+    <optgroup label="旺衰">
+      <option value="wang">旺山旺向</option>
+      <option value="shang">上山下水</option>
+      <option value="shuangzuo">雙星會坐</option>
+      <option value="shuangxiang">雙星會向</option>
+    </optgroup>
+    <optgroup label="合十">
+      <option value="quanju">全局合十</option>
+      <option value="duigong">對宮合十</option>
+    </optgroup>
+    <optgroup label="伏吟反吟">
+      <option value="fuyin_z">坐盤全局伏吟</option>
+      <option value="fuyin_x">向盤全局伏吟</option>
+      <option value="fanyin_z">坐盤全局反吟</option>
+      <option value="fanyin_x">向盤全局反吟</option>
+      <option value="fuyin_z_">山星單宮伏吟</option>
+      <option value="fuyin_x_">向星單宮伏吟</option>
+      <option value="fanyin_z_">山星單宮反吟</option>
+      <option value="fanyin_x_">向星單宮反吟</option>
+    </optgroup>
+    <optgroup label="三般卦">
+      <option value="lianzhu">連珠三般卦</option>
+      <option value="fumu">父母三般卦</option>
+    </optgroup>
+    <optgroup label="打劫">
+      <option value="ligong">離宮打劫</option>
+      <option value="kangong">坎宮打劫</option>
+    </optgroup>
+  </select>
+</div>
+<div id="yun-title"></div>
+<div id="chart-list"></div>
+
+<script>
+var DATA      = [[{"y":[9,5,7,8,1,3,4,6,2],"z":[7,2,9,8,6,4,3,1,5],"x":[4,9,2,3,5,7,8,1,6],"zf":0,"xf":1,"k":["shuangzuo","fuyin_x","fuyin_z_N","fuyin_z_E","fanyin_x_center"]},{"y":[9,5,7,8,1,3,4,6,2],"z":[5,1,3,4,6,8,9,2,7],"x":[6,1,8,7,5,3,2,9,4],"zf":1,"xf":0,"k":["shuangxiang","fanyin_x","fuyin_x_center","fuyin_x_W","fanyin_z_S","ligong"]},{"y":[9,5,7,8,1,3,4,6,2],"z":[5,1,3,4,6,8,9,2,7],"x":[6,1,8,7,5,3,2,9,4],"zf":1,"xf":0,"k":["shuangxiang","fanyin_x","fuyin_x_center","fuyin_x_W","fanyin_z_S","ligong"]},{"y":[9,5,7,8,1,3,4,6,2],"z":[5,9,7,6,4,2,1,8,3],"x":[6,2,4,5,7,9,1,3,8],"zf":0,"xf":1,"k":["shuangzuo","fuyin_z_S","fuyin_z_SW","fanyin_x_SE"]},{"y":[9,5,7,8,1,3,4,6,2],"z":[3,8,1,2,4,6,7,9,5],"x":[8,3,1,9,7,5,4,2,6],"zf":1,"xf":0,"k":["shuangxiang","fuyin_x_NE","fuyin_x_NW","fanyin_z_N"]},{"y":[9,5,7,8,1,3,4,6,2],"z":[3,8,1,2,4,6,7,9,5],"x":[8,3,1,9,7,5,4,2,6],"zf":1,"xf":0,"k":["shuangxiang","fuyin_x_NE","fuyin_x_NW","fanyin_z_N"]},{"y":[9,5,7,8,1,3,4,6,2],"z":[9,4,2,1,8,6,5,3,7],"x":[2,7,9,1,3,5,6,8,4],"zf":0,"xf":1,"k":["shuangzuo","fuyin_z_SE","fuyin_z_SW","fanyin_x_NW"]},{"y":[9,5,7,8,1,3,4,6,2],"z":[7,3,5,6,8,1,2,4,9],"x":[4,8,6,5,3,1,9,7,2],"zf":1,"xf":0,"k":["shuangxiang","fuyin_x_SE","fuyin_x_NW","fanyin_z_NE","kangong"]},{"y":[9,5,7,8,1,3,4,6,2],"z":[7,3,5,6,8,1,2,4,9],"x":[4,8,6,5,3,1,9,7,2],"zf":1,"xf":0,"k":["shuangxiang","fuyin_x_SE","fuyin_x_NW","fanyin_z_NE","kangong"]},{"y":[9,5,7,8,1,3,4,6,2],"z":[8,4,6,7,9,2,3,5,1],"x":[3,7,5,4,2,9,8,6,1],"zf":1,"xf":0,"k":["shuangxiang","fuyin_x_N","fuyin_x_NE","fanyin_z_E","ligong"]},{"y":[9,5,7,8,1,3,4,6,2],"z":[1,5,3,2,9,7,6,4,8],"x":[1,6,8,9,2,4,5,7,3],"zf":0,"xf":1,"k":["shuangzuo","quanju","fuyin_z_S","fuyin_z_W","fanyin_x_SW"]},{"y":[9,5,7,8,1,3,4,6,2],"z":[1,5,3,2,9,7,6,4,8],"x":[1,6,8,9,2,4,5,7,3],"zf":0,"xf":1,"k":["shuangzuo","quanju","fuyin_z_S","fuyin_z_W","fanyin_x_SW"]},{"y":[9,5,7,8,1,3,4,6,2],"z":[4,9,2,3,5,7,8,1,6],"x":[7,2,9,8,6,4,3,1,5],"zf":1,"xf":0,"k":["shuangxiang","fuyin_z","fuyin_x_N","fuyin_x_E","fanyin_z_center"]},{"y":[9,5,7,8,1,3,4,6,2],"z":[6,1,8,7,5,3,2,9,4],"x":[5,1,3,4,6,8,9,2,7],"zf":0,"xf":1,"k":["shuangzuo","fanyin_z","fuyin_z_center","fuyin_z_W","fanyin_x_S"]},{"y":[9,5,7,8,1,3,4,6,2],"z":[6,1,8,7,5,3,2,9,4],"x":[5,1,3,4,6,8,9,2,7],"zf":0,"xf":1,"k":["shuangzuo","fanyin_z","fuyin_z_center","fuyin_z_W","fanyin_x_S"]},{"y":[9,5,7,8,1,3,4,6,2],"z":[6,2,4,5,7,9,1,3,8],"x":[5,9,7,6,4,2,1,8,3],"zf":1,"xf":0,"k":["shuangxiang","fuyin_x_S","fuyin_x_SW","fanyin_z_SE"]},{"y":[9,5,7,8,1,3,4,6,2],"z":[8,3,1,9,7,5,4,2,6],"x":[3,8,1,2,4,6,7,9,5],"zf":0,"xf":1,"k":["shuangzuo","fuyin_z_NE","fuyin_z_NW","fanyin_x_N"]},{"y":[9,5,7,8,1,3,4,6,2],"z":[8,3,1,9,7,5,4,2,6],"x":[3,8,1,2,4,6,7,9,5],"zf":0,"xf":1,"k":["shuangzuo","fuyin_z_NE","fuyin_z_NW","fanyin_x_N"]},{"y":[9,5,7,8,1,3,4,6,2],"z":[2,7,9,1,3,5,6,8,4],"x":[9,4,2,1,8,6,5,3,7],"zf":1,"xf":0,"k":["shuangxiang","fuyin_x_SE","fuyin_x_SW","fanyin_z_NW","ligong"]},{"y":[9,5,7,8,1,3,4,6,2],"z":[4,8,6,5,3,1,9,7,2],"x":[7,3,5,6,8,1,2,4,9],"zf":0,"xf":1,"k":["shuangzuo","fuyin_z_SE","fuyin_z_NW","fanyin_x_NE"]},{"y":[9,5,7,8,1,3,4,6,2],"z":[4,8,6,5,3,1,9,7,2],"x":[7,3,5,6,8,1,2,4,9],"zf":0,"xf":1,"k":["shuangzuo","fuyin_z_SE","fuyin_z_NW","fanyin_x_NE"]},{"y":[9,5,7,8,1,3,4,6,2],"z":[3,7,5,4,2,9,8,6,1],"x":[8,4,6,7,9,2,3,5,1],"zf":0,"xf":1,"k":["shuangzuo","fuyin_z_N","fuyin_z_NE","fanyin_x_E"]},{"y":[9,5,7,8,1,3,4,6,2],"z":[1,6,8,9,2,4,5,7,3],"x":[1,5,3,2,9,7,6,4,8],"zf":1,"xf":0,"k":["shuangxiang","quanju","fuyin_x_S","fuyin_x_W","fanyin_z_SW","kangong"]},{"y":[9,5,7,8,1,3,4,6,2],"z":[1,6,8,9,2,4,5,7,3],"x":[1,5,3,2,9,7,6,4,8],"zf":1,"xf":0,"k":["shuangxiang","quanju","fuyin_x_S","fuyin_x_W","fanyin_z_SW","kangong"]}],[{"y":[1,6,8,9,2,4,5,7,3],"z":[6,2,4,5,7,9,1,3,8],"x":[7,2,9,8,6,4,3,1,5],"zf":1,"xf":0,"k":["shuangxiang","fuyin_x_N","fuyin_x_W","fanyin_z_SE","ligong"]},{"y":[1,6,8,9,2,4,5,7,3],"z":[8,3,1,9,7,5,4,2,6],"x":[5,1,3,4,6,8,9,2,7],"zf":0,"xf":1,"k":["shuangzuo","fuyin_z_E","fuyin_z_NW","fanyin_x_S"]},{"y":[1,6,8,9,2,4,5,7,3],"z":[8,3,1,9,7,5,4,2,6],"x":[5,1,3,4,6,8,9,2,7],"zf":0,"xf":1,"k":["shuangzuo","fuyin_z_E","fuyin_z_NW","fanyin_x_S"]},{"y":[1,6,8,9,2,4,5,7,3],"z":[6,1,8,7,5,3,2,9,4],"x":[9,4,2,1,8,6,5,3,7],"zf":0,"xf":0,"k":["wang","quanju","fanyin_z","fuyin_z_center","fuyin_z_SW","fuyin_x_NE","fuyin_x_SW"]},{"y":[1,6,8,9,2,4,5,7,3],"z":[4,9,2,3,5,7,8,1,6],"x":[7,3,5,6,8,1,2,4,9],"zf":1,"xf":1,"k":["shang","fuyin_z","fanyin_z_center","fanyin_x_NE","fumu"]},{"y":[1,6,8,9,2,4,5,7,3],"z":[4,9,2,3,5,7,8,1,6],"x":[7,3,5,6,8,1,2,4,9],"zf":1,"xf":1,"k":["shang","fuyin_z","fanyin_z_center","fanyin_x_NE","fumu"]},{"y":[1,6,8,9,2,4,5,7,3],"z":[8,4,6,7,9,2,3,5,1],"x":[5,9,7,6,4,2,1,8,3],"zf":1,"xf":0,"k":["shuangxiang","fuyin_x_S","fuyin_x_NW","fanyin_z_E","kangong"]},{"y":[1,6,8,9,2,4,5,7,3],"z":[1,5,3,2,9,7,6,4,8],"x":[3,8,1,2,4,6,7,9,5],"zf":0,"xf":1,"k":["shuangzuo","fuyin_z_SE","fuyin_z_W","fanyin_x_N"]},{"y":[1,6,8,9,2,4,5,7,3],"z":[1,5,3,2,9,7,6,4,8],"x":[3,8,1,2,4,6,7,9,5],"zf":0,"xf":1,"k":["shuangzuo","fuyin_z_SE","fuyin_z_W","fanyin_x_N"]},{"y":[1,6,8,9,2,4,5,7,3],"z":[9,5,7,8,1,3,4,6,2],"x":[2,7,9,1,3,5,6,8,4],"zf":1,"xf":1,"k":["shang","fanyin_z_W","fanyin_x_NW","lianzhu"]},{"y":[1,6,8,9,2,4,5,7,3],"z":[2,6,4,3,1,8,7,5,9],"x":[4,8,6,5,3,1,9,7,2],"zf":0,"xf":0,"k":["wang","fuyin_z_E","fuyin_z_S","fuyin_x_N","fuyin_x_SE"]},{"y":[1,6,8,9,2,4,5,7,3],"z":[2,6,4,3,1,8,7,5,9],"x":[4,8,6,5,3,1,9,7,2],"zf":0,"xf":0,"k":["wang","fuyin_z_E","fuyin_z_S","fuyin_x_N","fuyin_x_SE"]},{"y":[1,6,8,9,2,4,5,7,3],"z":[7,2,9,8,6,4,3,1,5],"x":[6,2,4,5,7,9,1,3,8],"zf":0,"xf":1,"k":["shuangzuo","fuyin_z_N","fuyin_z_W","fanyin_x_SE"]},{"y":[1,6,8,9,2,4,5,7,3],"z":[5,1,3,4,6,8,9,2,7],"x":[8,3,1,9,7,5,4,2,6],"zf":1,"xf":0,"k":["shuangxiang","fuyin_x_E","fuyin_x_NW","fanyin_z_S","kangong"]},{"y":[1,6,8,9,2,4,5,7,3],"z":[5,1,3,4,6,8,9,2,7],"x":[8,3,1,9,7,5,4,2,6],"zf":1,"xf":0,"k":["shuangxiang","fuyin_x_E","fuyin_x_NW","fanyin_z_S","kangong"]},{"y":[1,6,8,9,2,4,5,7,3],"z":[9,4,2,1,8,6,5,3,7],"x":[6,1,8,7,5,3,2,9,4],"zf":0,"xf":0,"k":["wang","quanju","fanyin_x","fuyin_z_NE","fuyin_z_SW","fuyin_x_center","fuyin_x_SW"]},{"y":[1,6,8,9,2,4,5,7,3],"z":[7,3,5,6,8,1,2,4,9],"x":[4,9,2,3,5,7,8,1,6],"zf":1,"xf":1,"k":["shang","fuyin_x","fanyin_z_NE","fanyin_x_center","fumu"]},{"y":[1,6,8,9,2,4,5,7,3],"z":[7,3,5,6,8,1,2,4,9],"x":[4,9,2,3,5,7,8,1,6],"zf":1,"xf":1,"k":["shang","fuyin_x","fanyin_z_NE","fanyin_x_center","fumu"]},{"y":[1,6,8,9,2,4,5,7,3],"z":[5,9,7,6,4,2,1,8,3],"x":[8,4,6,7,9,2,3,5,1],"zf":0,"xf":1,"k":["shuangzuo","fuyin_z_S","fuyin_z_NW","fanyin_x_E"]},{"y":[1,6,8,9,2,4,5,7,3],"z":[3,8,1,2,4,6,7,9,5],"x":[1,5,3,2,9,7,6,4,8],"zf":1,"xf":0,"k":["shuangxiang","fuyin_x_SE","fuyin_x_W","fanyin_z_N","ligong"]},{"y":[1,6,8,9,2,4,5,7,3],"z":[3,8,1,2,4,6,7,9,5],"x":[1,5,3,2,9,7,6,4,8],"zf":1,"xf":0,"k":["shuangxiang","fuyin_x_SE","fuyin_x_W","fanyin_z_N","ligong"]},{"y":[1,6,8,9,2,4,5,7,3],"z":[2,7,9,1,3,5,6,8,4],"x":[9,5,7,8,1,3,4,6,2],"zf":1,"xf":1,"k":["shang","fanyin_z_NW","fanyin_x_W","lianzhu"]},{"y":[1,6,8,9,2,4,5,7,3],"z":[4,8,6,5,3,1,9,7,2],"x":[2,6,4,3,1,8,7,5,9],"zf":0,"xf":0,"k":["wang","fuyin_z_N","fuyin_z_SE","fuyin_x_E","fuyin_x_S"]},{"y":[1,6,8,9,2,4,5,7,3],"z":[4,8,6,5,3,1,9,7,2],"x":[2,6,4,3,1,8,7,5,9],"zf":0,"xf":0,"k":["wang","fuyin_z_N","fuyin_z_SE","fuyin_x_E","fuyin_x_S"]}],[{"y":[2,7,9,1,3,5,6,8,4],"z":[9,4,2,1,8,6,5,3,7],"x":[6,2,4,5,7,9,1,3,8],"zf":0,"xf":1,"k":["shuangzuo","fuyin_z_E","fuyin_z_SW","fanyin_x_SE"]},{"y":[2,7,9,1,3,5,6,8,4],"z":[7,3,5,6,8,1,2,4,9],"x":[8,3,1,9,7,5,4,2,6],"zf":1,"xf":0,"k":["shuangxiang","quanju","fuyin_x_W","fuyin_x_NW","fanyin_z_NE","ligong"]},{"y":[2,7,9,1,3,5,6,8,4],"z":[7,3,5,6,8,1,2,4,9],"x":[8,3,1,9,7,5,4,2,6],"zf":1,"xf":0,"k":["shuangxiang","quanju","fuyin_x_W","fuyin_x_NW","fanyin_z_NE","ligong"]},{"y":[2,7,9,1,3,5,6,8,4],"z":[7,2,9,8,6,4,3,1,5],"x":[8,4,6,7,9,2,3,5,1],"zf":0,"xf":1,"k":["shuangzuo","fuyin_z_N","fuyin_z_SW","fanyin_x_E"]},{"y":[2,7,9,1,3,5,6,8,4],"z":[5,1,3,4,6,8,9,2,7],"x":[1,5,3,2,9,7,6,4,8],"zf":1,"xf":0,"k":["shuangxiang","fuyin_x_NE","fuyin_x_W","fanyin_z_S"]},{"y":[2,7,9,1,3,5,6,8,4],"z":[5,1,3,4,6,8,9,2,7],"x":[1,5,3,2,9,7,6,4,8],"zf":1,"xf":0,"k":["shuangxiang","fuyin_x_NE","fuyin_x_W","fanyin_z_S"]},{"y":[2,7,9,1,3,5,6,8,4],"z":[9,5,7,8,1,3,4,6,2],"x":[4,9,2,3,5,7,8,1,6],"zf":1,"xf":1,"k":["shang","fuyin_x","fanyin_z_W","fanyin_x_center"]},{"y":[2,7,9,1,3,5,6,8,4],"z":[2,6,4,3,1,8,7,5,9],"x":[6,1,8,7,5,3,2,9,4],"zf":0,"xf":0,"k":["wang","fanyin_x","fuyin_z_E","fuyin_z_SE","fuyin_x_center","fuyin_x_NW"]},{"y":[2,7,9,1,3,5,6,8,4],"z":[2,6,4,3,1,8,7,5,9],"x":[6,1,8,7,5,3,2,9,4],"zf":0,"xf":0,"k":["wang","fanyin_x","fuyin_z_E","fuyin_z_SE","fuyin_x_center","fuyin_x_NW"]},{"y":[2,7,9,1,3,5,6,8,4],"z":[3,7,5,4,2,9,8,6,1],"x":[5,9,7,6,4,2,1,8,3],"zf":0,"xf":0,"k":["wang","fuyin_z_NE","fuyin_z_S","fuyin_x_N","fuyin_x_S"]},{"y":[2,7,9,1,3,5,6,8,4],"z":[1,6,8,9,2,4,5,7,3],"x":[3,8,1,2,4,6,7,9,5],"zf":1,"xf":1,"k":["shang","fanyin_z_SW","fanyin_x_N","lianzhu"]},{"y":[2,7,9,1,3,5,6,8,4],"z":[1,6,8,9,2,4,5,7,3],"x":[3,8,1,2,4,6,7,9,5],"zf":1,"xf":1,"k":["shang","fanyin_z_SW","fanyin_x_N","lianzhu"]},{"y":[2,7,9,1,3,5,6,8,4],"z":[6,2,4,5,7,9,1,3,8],"x":[9,4,2,1,8,6,5,3,7],"zf":1,"xf":0,"k":["shuangxiang","fuyin_x_E","fuyin_x_SW","fanyin_z_SE","kangong"]},{"y":[2,7,9,1,3,5,6,8,4],"z":[8,3,1,9,7,5,4,2,6],"x":[7,3,5,6,8,1,2,4,9],"zf":0,"xf":1,"k":["shuangzuo","quanju","fuyin_z_W","fuyin_z_NW","fanyin_x_NE"]},{"y":[2,7,9,1,3,5,6,8,4],"z":[8,3,1,9,7,5,4,2,6],"x":[7,3,5,6,8,1,2,4,9],"zf":0,"xf":1,"k":["shuangzuo","quanju","fuyin_z_W","fuyin_z_NW","fanyin_x_NE"]},{"y":[2,7,9,1,3,5,6,8,4],"z":[8,4,6,7,9,2,3,5,1],"x":[7,2,9,8,6,4,3,1,5],"zf":1,"xf":0,"k":["shuangxiang","fuyin_x_N","fuyin_x_SW","fanyin_z_E"]},{"y":[2,7,9,1,3,5,6,8,4],"z":[1,5,3,2,9,7,6,4,8],"x":[5,1,3,4,6,8,9,2,7],"zf":0,"xf":1,"k":["shuangzuo","fuyin_z_NE","fuyin_z_W","fanyin_x_S"]},{"y":[2,7,9,1,3,5,6,8,4],"z":[1,5,3,2,9,7,6,4,8],"x":[5,1,3,4,6,8,9,2,7],"zf":0,"xf":1,"k":["shuangzuo","fuyin_z_NE","fuyin_z_W","fanyin_x_S"]},{"y":[2,7,9,1,3,5,6,8,4],"z":[4,9,2,3,5,7,8,1,6],"x":[9,5,7,8,1,3,4,6,2],"zf":1,"xf":1,"k":["shang","fuyin_z","fanyin_z_center","fanyin_x_W"]},{"y":[2,7,9,1,3,5,6,8,4],"z":[6,1,8,7,5,3,2,9,4],"x":[2,6,4,3,1,8,7,5,9],"zf":0,"xf":0,"k":["wang","fanyin_z","fuyin_z_center","fuyin_z_NW","fuyin_x_E","fuyin_x_SE"]},{"y":[2,7,9,1,3,5,6,8,4],"z":[6,1,8,7,5,3,2,9,4],"x":[2,6,4,3,1,8,7,5,9],"zf":0,"xf":0,"k":["wang","fanyin_z","fuyin_z_center","fuyin_z_NW","fuyin_x_E","fuyin_x_SE"]},{"y":[2,7,9,1,3,5,6,8,4],"z":[5,9,7,6,4,2,1,8,3],"x":[3,7,5,4,2,9,8,6,1],"zf":0,"xf":0,"k":["wang","fuyin_z_N","fuyin_z_S","fuyin_x_NE","fuyin_x_S"]},{"y":[2,7,9,1,3,5,6,8,4],"z":[3,8,1,2,4,6,7,9,5],"x":[1,6,8,9,2,4,5,7,3],"zf":1,"xf":1,"k":["shang","fanyin_z_N","fanyin_x_SW","lianzhu"]},{"y":[2,7,9,1,3,5,6,8,4],"z":[3,8,1,2,4,6,7,9,5],"x":[1,6,8,9,2,4,5,7,3],"zf":1,"xf":1,"k":["shang","fanyin_z_N","fanyin_x_SW","lianzhu"]}],[{"y":[3,8,1,2,4,6,7,9,5],"z":[8,4,6,7,9,2,3,5,1],"x":[9,4,2,1,8,6,5,3,7],"zf":1,"xf":0,"k":["shuangxiang","fuyin_x_SW","fuyin_x_W","fanyin_z_E","ligong"]},{"y":[3,8,1,2,4,6,7,9,5],"z":[1,5,3,2,9,7,6,4,8],"x":[7,3,5,6,8,1,2,4,9],"zf":0,"xf":1,"k":["shuangzuo","fuyin_z_E","fuyin_z_W","fanyin_x_NE"]},{"y":[3,8,1,2,4,6,7,9,5],"z":[1,5,3,2,9,7,6,4,8],"x":[7,3,5,6,8,1,2,4,9],"zf":0,"xf":1,"k":["shuangzuo","fuyin_z_E","fuyin_z_W","fanyin_x_NE"]},{"y":[3,8,1,2,4,6,7,9,5],"z":[6,2,4,5,7,9,1,3,8],"x":[9,5,7,8,1,3,4,6,2],"zf":1,"xf":1,"k":["shang","fanyin_z_SE","fanyin_x_W","fumu"]},{"y":[3,8,1,2,4,6,7,9,5],"z":[8,3,1,9,7,5,4,2,6],"x":[2,6,4,3,1,8,7,5,9],"zf":0,"xf":0,"k":["wang","fuyin_z_SW","fuyin_z_NW","fuyin_x_NE","fuyin_x_E"]},{"y":[3,8,1,2,4,6,7,9,5],"z":[8,3,1,9,7,5,4,2,6],"x":[2,6,4,3,1,8,7,5,9],"zf":0,"xf":0,"k":["wang","fuyin_z_SW","fuyin_z_NW","fuyin_x_NE","fuyin_x_E"]},{"y":[3,8,1,2,4,6,7,9,5],"z":[3,7,5,4,2,9,8,6,1],"x":[7,2,9,8,6,4,3,1,5],"zf":0,"xf":0,"k":["wang","quanju","fuyin_z_NE","fuyin_z_SE","fuyin_x_N","fuyin_x_NW"]},{"y":[3,8,1,2,4,6,7,9,5],"z":[1,6,8,9,2,4,5,7,3],"x":[5,1,3,4,6,8,9,2,7],"zf":1,"xf":1,"k":["shang","fanyin_z_SW","fanyin_x_S"]},{"y":[3,8,1,2,4,6,7,9,5],"z":[1,6,8,9,2,4,5,7,3],"x":[5,1,3,4,6,8,9,2,7],"zf":1,"xf":1,"k":["shang","fanyin_z_SW","fanyin_x_S"]},{"y":[3,8,1,2,4,6,7,9,5],"z":[2,7,9,1,3,5,6,8,4],"x":[6,1,8,7,5,3,2,9,4],"zf":1,"xf":0,"k":["shuangxiang","fanyin_x","fuyin_x_center","fuyin_x_N","fanyin_z_NW","ligong"]},{"y":[3,8,1,2,4,6,7,9,5],"z":[4,8,6,5,3,1,9,7,2],"x":[4,9,2,3,5,7,8,1,6],"zf":0,"xf":1,"k":["shuangzuo","fuyin_x","fuyin_z_SE","fuyin_z_S","fanyin_x_center"]},{"y":[3,8,1,2,4,6,7,9,5],"z":[4,8,6,5,3,1,9,7,2],"x":[4,9,2,3,5,7,8,1,6],"zf":0,"xf":1,"k":["shuangzuo","fuyin_x","fuyin_z_SE","fuyin_z_S","fanyin_x_center"]},{"y":[3,8,1,2,4,6,7,9,5],"z":[9,4,2,1,8,6,5,3,7],"x":[8,4,6,7,9,2,3,5,1],"zf":0,"xf":1,"k":["shuangzuo","fuyin_z_SW","fuyin_z_W","fanyin_x_E"]},{"y":[3,8,1,2,4,6,7,9,5],"z":[7,3,5,6,8,1,2,4,9],"x":[1,5,3,2,9,7,6,4,8],"zf":1,"xf":0,"k":["shuangxiang","fuyin_x_E","fuyin_x_W","fanyin_z_NE","kangong"]},{"y":[3,8,1,2,4,6,7,9,5],"z":[7,3,5,6,8,1,2,4,9],"x":[1,5,3,2,9,7,6,4,8],"zf":1,"xf":0,"k":["shuangxiang","fuyin_x_E","fuyin_x_W","fanyin_z_NE","kangong"]},{"y":[3,8,1,2,4,6,7,9,5],"z":[9,5,7,8,1,3,4,6,2],"x":[6,2,4,5,7,9,1,3,8],"zf":1,"xf":1,"k":["shang","fanyin_z_W","fanyin_x_SE","fumu"]},{"y":[3,8,1,2,4,6,7,9,5],"z":[2,6,4,3,1,8,7,5,9],"x":[8,3,1,9,7,5,4,2,6],"zf":0,"xf":0,"k":["wang","fuyin_z_NE","fuyin_z_E","fuyin_x_SW","fuyin_x_NW"]},{"y":[3,8,1,2,4,6,7,9,5],"z":[2,6,4,3,1,8,7,5,9],"x":[8,3,1,9,7,5,4,2,6],"zf":0,"xf":0,"k":["wang","fuyin_z_NE","fuyin_z_E","fuyin_x_SW","fuyin_x_NW"]},{"y":[3,8,1,2,4,6,7,9,5],"z":[7,2,9,8,6,4,3,1,5],"x":[3,7,5,4,2,9,8,6,1],"zf":0,"xf":0,"k":["wang","quanju","fuyin_z_N","fuyin_z_NW","fuyin_x_NE","fuyin_x_SE"]},{"y":[3,8,1,2,4,6,7,9,5],"z":[5,1,3,4,6,8,9,2,7],"x":[1,6,8,9,2,4,5,7,3],"zf":1,"xf":1,"k":["shang","fanyin_z_S","fanyin_x_SW"]},{"y":[3,8,1,2,4,6,7,9,5],"z":[5,1,3,4,6,8,9,2,7],"x":[1,6,8,9,2,4,5,7,3],"zf":1,"xf":1,"k":["shang","fanyin_z_S","fanyin_x_SW"]},{"y":[3,8,1,2,4,6,7,9,5],"z":[6,1,8,7,5,3,2,9,4],"x":[2,7,9,1,3,5,6,8,4],"zf":0,"xf":1,"k":["shuangzuo","fanyin_z","fuyin_z_center","fuyin_z_N","fanyin_x_NW"]},{"y":[3,8,1,2,4,6,7,9,5],"z":[4,9,2,3,5,7,8,1,6],"x":[4,8,6,5,3,1,9,7,2],"zf":1,"xf":0,"k":["shuangxiang","fuyin_z","fuyin_x_SE","fuyin_x_S","fanyin_z_center"]},{"y":[3,8,1,2,4,6,7,9,5],"z":[4,9,2,3,5,7,8,1,6],"x":[4,8,6,5,3,1,9,7,2],"zf":1,"xf":0,"k":["shuangxiang","fuyin_z","fuyin_x_SE","fuyin_x_S","fanyin_z_center"]}],[{"y":[4,9,2,3,5,7,8,1,6],"z":[9,5,7,8,1,3,4,6,2],"x":[8,4,6,7,9,2,3,5,1],"zf":1,"xf":1,"k":["shang","duigong","fanyin_z_W","fanyin_x_E"]},{"y":[4,9,2,3,5,7,8,1,6],"z":[2,6,4,3,1,8,7,5,9],"x":[1,5,3,2,9,7,6,4,8],"zf":0,"xf":0,"k":["wang","duigong","fuyin_z_E","fuyin_x_W"]},{"y":[4,9,2,3,5,7,8,1,6],"z":[2,6,4,3,1,8,7,5,9],"x":[1,5,3,2,9,7,6,4,8],"zf":0,"xf":0,"k":["wang","duigong","fuyin_z_E","fuyin_x_W"]},{"y":[4,9,2,3,5,7,8,1,6],"z":[9,4,2,1,8,6,5,3,7],"x":[3,7,5,4,2,9,8,6,1],"zf":0,"xf":0,"k":["wang","duigong","fuyin_z_SW","fuyin_x_NE"]},{"y":[4,9,2,3,5,7,8,1,6],"z":[7,3,5,6,8,1,2,4,9],"x":[1,6,8,9,2,4,5,7,3],"zf":1,"xf":1,"k":["shang","duigong","fanyin_z_NE","fanyin_x_SW","fumu"]},{"y":[4,9,2,3,5,7,8,1,6],"z":[7,3,5,6,8,1,2,4,9],"x":[1,6,8,9,2,4,5,7,3],"zf":1,"xf":1,"k":["shang","duigong","fanyin_z_NE","fanyin_x_SW","fumu"]},{"y":[4,9,2,3,5,7,8,1,6],"z":[2,7,9,1,3,5,6,8,4],"x":[6,2,4,5,7,9,1,3,8],"zf":1,"xf":1,"k":["shang","duigong","fanyin_z_NW","fanyin_x_SE"]},{"y":[4,9,2,3,5,7,8,1,6],"z":[4,8,6,5,3,1,9,7,2],"x":[8,3,1,9,7,5,4,2,6],"zf":0,"xf":0,"k":["wang","duigong","fuyin_z_SE","fuyin_x_NW"]},{"y":[4,9,2,3,5,7,8,1,6],"z":[4,8,6,5,3,1,9,7,2],"x":[8,3,1,9,7,5,4,2,6],"zf":0,"xf":0,"k":["wang","duigong","fuyin_z_SE","fuyin_x_NW"]},{"y":[4,9,2,3,5,7,8,1,6],"z":[5,9,7,6,4,2,1,8,3],"x":[7,2,9,8,6,4,3,1,5],"zf":0,"xf":0,"k":["wang","duigong","fuyin_z_S","fuyin_x_N"]},{"y":[4,9,2,3,5,7,8,1,6],"z":[3,8,1,2,4,6,7,9,5],"x":[5,1,3,4,6,8,9,2,7],"zf":1,"xf":1,"k":["shang","duigong","fanyin_z_N","fanyin_x_S","lianzhu"]},{"y":[4,9,2,3,5,7,8,1,6],"z":[3,8,1,2,4,6,7,9,5],"x":[5,1,3,4,6,8,9,2,7],"zf":1,"xf":1,"k":["shang","duigong","fanyin_z_N","fanyin_x_S","lianzhu"]},{"y":[4,9,2,3,5,7,8,1,6],"z":[8,4,6,7,9,2,3,5,1],"x":[9,5,7,8,1,3,4,6,2],"zf":1,"xf":1,"k":["shang","duigong","fanyin_z_E","fanyin_x_W"]},{"y":[4,9,2,3,5,7,8,1,6],"z":[1,5,3,2,9,7,6,4,8],"x":[2,6,4,3,1,8,7,5,9],"zf":0,"xf":0,"k":["wang","duigong","fuyin_z_W","fuyin_x_E"]},{"y":[4,9,2,3,5,7,8,1,6],"z":[1,5,3,2,9,7,6,4,8],"x":[2,6,4,3,1,8,7,5,9],"zf":0,"xf":0,"k":["wang","duigong","fuyin_z_W","fuyin_x_E"]},{"y":[4,9,2,3,5,7,8,1,6],"z":[3,7,5,4,2,9,8,6,1],"x":[9,4,2,1,8,6,5,3,7],"zf":0,"xf":0,"k":["wang","duigong","fuyin_z_NE","fuyin_x_SW"]},{"y":[4,9,2,3,5,7,8,1,6],"z":[1,6,8,9,2,4,5,7,3],"x":[7,3,5,6,8,1,2,4,9],"zf":1,"xf":1,"k":["shang","duigong","fanyin_z_SW","fanyin_x_NE","fumu"]},{"y":[4,9,2,3,5,7,8,1,6],"z":[1,6,8,9,2,4,5,7,3],"x":[7,3,5,6,8,1,2,4,9],"zf":1,"xf":1,"k":["shang","duigong","fanyin_z_SW","fanyin_x_NE","fumu"]},{"y":[4,9,2,3,5,7,8,1,6],"z":[6,2,4,5,7,9,1,3,8],"x":[2,7,9,1,3,5,6,8,4],"zf":1,"xf":1,"k":["shang","duigong","fanyin_z_SE","fanyin_x_NW"]},{"y":[4,9,2,3,5,7,8,1,6],"z":[8,3,1,9,7,5,4,2,6],"x":[4,8,6,5,3,1,9,7,2],"zf":0,"xf":0,"k":["wang","duigong","fuyin_z_NW","fuyin_x_SE"]},{"y":[4,9,2,3,5,7,8,1,6],"z":[8,3,1,9,7,5,4,2,6],"x":[4,8,6,5,3,1,9,7,2],"zf":0,"xf":0,"k":["wang","duigong","fuyin_z_NW","fuyin_x_SE"]},{"y":[4,9,2,3,5,7,8,1,6],"z":[7,2,9,8,6,4,3,1,5],"x":[5,9,7,6,4,2,1,8,3],"zf":0,"xf":0,"k":["wang","duigong","fuyin_z_N","fuyin_x_S"]},{"y":[4,9,2,3,5,7,8,1,6],"z":[5,1,3,4,6,8,9,2,7],"x":[3,8,1,2,4,6,7,9,5],"zf":1,"xf":1,"k":["shang","duigong","fanyin_z_S","fanyin_x_N","lianzhu"]},{"y":[4,9,2,3,5,7,8,1,6],"z":[5,1,3,4,6,8,9,2,7],"x":[3,8,1,2,4,6,7,9,5],"zf":1,"xf":1,"k":["shang","duigong","fanyin_z_S","fanyin_x_N","lianzhu"]}],[{"y":[5,1,3,4,6,8,9,2,7],"z":[3,7,5,4,2,9,8,6,1],"x":[9,5,7,8,1,3,4,6,2],"zf":0,"xf":1,"k":["shuangzuo","fuyin_z_NE","fuyin_z_E","fanyin_x_W"]},{"y":[5,1,3,4,6,8,9,2,7],"z":[1,6,8,9,2,4,5,7,3],"x":[2,6,4,3,1,8,7,5,9],"zf":1,"xf":0,"k":["shuangxiang","fuyin_x_E","fuyin_x_W","fanyin_z_SW","ligong"]},{"y":[5,1,3,4,6,8,9,2,7],"z":[1,6,8,9,2,4,5,7,3],"x":[2,6,4,3,1,8,7,5,9],"zf":1,"xf":0,"k":["shuangxiang","fuyin_x_E","fuyin_x_W","fanyin_z_SW","ligong"]},{"y":[5,1,3,4,6,8,9,2,7],"z":[8,4,6,7,9,2,3,5,1],"x":[2,7,9,1,3,5,6,8,4],"zf":1,"xf":1,"k":["shang","fanyin_z_E","fanyin_x_NW","fumu"]},{"y":[5,1,3,4,6,8,9,2,7],"z":[1,5,3,2,9,7,6,4,8],"x":[4,8,6,5,3,1,9,7,2],"zf":0,"xf":0,"k":["wang","fuyin_z_SW","fuyin_z_W","fuyin_x_NE","fuyin_x_SE"]},{"y":[5,1,3,4,6,8,9,2,7],"z":[1,5,3,2,9,7,6,4,8],"x":[4,8,6,5,3,1,9,7,2],"zf":0,"xf":0,"k":["wang","fuyin_z_SW","fuyin_z_W","fuyin_x_NE","fuyin_x_SE"]},{"y":[5,1,3,4,6,8,9,2,7],"z":[5,9,7,6,4,2,1,8,3],"x":[9,4,2,1,8,6,5,3,7],"zf":0,"xf":0,"k":["wang","quanju","fuyin_z_SE","fuyin_z_S","fuyin_x_SW","fuyin_x_NW"]},{"y":[5,1,3,4,6,8,9,2,7],"z":[3,8,1,2,4,6,7,9,5],"x":[7,3,5,6,8,1,2,4,9],"zf":1,"xf":1,"k":["shang","fanyin_z_N","fanyin_x_NE"]},{"y":[5,1,3,4,6,8,9,2,7],"z":[3,8,1,2,4,6,7,9,5],"x":[7,3,5,6,8,1,2,4,9],"zf":1,"xf":1,"k":["shang","fanyin_z_N","fanyin_x_NE"]},{"y":[5,1,3,4,6,8,9,2,7],"z":[6,1,8,7,5,3,2,9,4],"x":[6,2,4,5,7,9,1,3,8],"zf":0,"xf":1,"k":["shuangzuo","fanyin_z","fuyin_z_center","fuyin_z_S","fanyin_x_SE"]},{"y":[5,1,3,4,6,8,9,2,7],"z":[4,9,2,3,5,7,8,1,6],"x":[8,3,1,9,7,5,4,2,6],"zf":1,"xf":0,"k":["shuangxiang","fuyin_z","fuyin_x_N","fuyin_x_NW","fanyin_z_center"]},{"y":[5,1,3,4,6,8,9,2,7],"z":[4,9,2,3,5,7,8,1,6],"x":[8,3,1,9,7,5,4,2,6],"zf":1,"xf":0,"k":["shuangxiang","fuyin_z","fuyin_x_N","fuyin_x_NW","fanyin_z_center"]},{"y":[5,1,3,4,6,8,9,2,7],"z":[9,5,7,8,1,3,4,6,2],"x":[3,7,5,4,2,9,8,6,1],"zf":1,"xf":0,"k":["shuangxiang","fuyin_x_NE","fuyin_x_E","fanyin_z_W","kangong"]},{"y":[5,1,3,4,6,8,9,2,7],"z":[2,6,4,3,1,8,7,5,9],"x":[1,6,8,9,2,4,5,7,3],"zf":0,"xf":1,"k":["shuangzuo","fuyin_z_E","fuyin_z_W","fanyin_x_SW"]},{"y":[5,1,3,4,6,8,9,2,7],"z":[2,6,4,3,1,8,7,5,9],"x":[1,6,8,9,2,4,5,7,3],"zf":0,"xf":1,"k":["shuangzuo","fuyin_z_E","fuyin_z_W","fanyin_x_SW"]},{"y":[5,1,3,4,6,8,9,2,7],"z":[2,7,9,1,3,5,6,8,4],"x":[8,4,6,7,9,2,3,5,1],"zf":1,"xf":1,"k":["shang","fanyin_z_NW","fanyin_x_E","fumu"]},{"y":[5,1,3,4,6,8,9,2,7],"z":[4,8,6,5,3,1,9,7,2],"x":[1,5,3,2,9,7,6,4,8],"zf":0,"xf":0,"k":["wang","fuyin_z_NE","fuyin_z_SE","fuyin_x_SW","fuyin_x_W"]},{"y":[5,1,3,4,6,8,9,2,7],"z":[4,8,6,5,3,1,9,7,2],"x":[1,5,3,2,9,7,6,4,8],"zf":0,"xf":0,"k":["wang","fuyin_z_NE","fuyin_z_SE","fuyin_x_SW","fuyin_x_W"]},{"y":[5,1,3,4,6,8,9,2,7],"z":[9,4,2,1,8,6,5,3,7],"x":[5,9,7,6,4,2,1,8,3],"zf":0,"xf":0,"k":["wang","quanju","fuyin_z_SW","fuyin_z_NW","fuyin_x_SE","fuyin_x_S"]},{"y":[5,1,3,4,6,8,9,2,7],"z":[7,3,5,6,8,1,2,4,9],"x":[3,8,1,2,4,6,7,9,5],"zf":1,"xf":1,"k":["shang","fanyin_z_NE","fanyin_x_N"]},{"y":[5,1,3,4,6,8,9,2,7],"z":[7,3,5,6,8,1,2,4,9],"x":[3,8,1,2,4,6,7,9,5],"zf":1,"xf":1,"k":["shang","fanyin_z_NE","fanyin_x_N"]},{"y":[5,1,3,4,6,8,9,2,7],"z":[6,2,4,5,7,9,1,3,8],"x":[6,1,8,7,5,3,2,9,4],"zf":1,"xf":0,"k":["shuangxiang","fanyin_x","fuyin_x_center","fuyin_x_S","fanyin_z_SE","kangong"]},{"y":[5,1,3,4,6,8,9,2,7],"z":[8,3,1,9,7,5,4,2,6],"x":[4,9,2,3,5,7,8,1,6],"zf":0,"xf":1,"k":["shuangzuo","fuyin_x","fuyin_z_N","fuyin_z_NW","fanyin_x_center"]},{"y":[5,1,3,4,6,8,9,2,7],"z":[8,3,1,9,7,5,4,2,6],"x":[4,9,2,3,5,7,8,1,6],"zf":0,"xf":1,"k":["shuangzuo","fuyin_x","fuyin_z_N","fuyin_z_NW","fanyin_x_center"]}],[{"y":[6,2,4,5,7,9,1,3,8],"z":[2,7,9,1,3,5,6,8,4],"x":[3,7,5,4,2,9,8,6,1],"zf":1,"xf":0,"k":["shuangxiang","fuyin_x_NE","fuyin_x_W","fanyin_z_NW","ligong"]},{"y":[6,2,4,5,7,9,1,3,8],"z":[4,8,6,5,3,1,9,7,2],"x":[1,6,8,9,2,4,5,7,3],"zf":0,"xf":1,"k":["shuangzuo","quanju","fuyin_z_E","fuyin_z_SE","fanyin_x_SW"]},{"y":[6,2,4,5,7,9,1,3,8],"z":[4,8,6,5,3,1,9,7,2],"x":[1,6,8,9,2,4,5,7,3],"zf":0,"xf":1,"k":["shuangzuo","quanju","fuyin_z_E","fuyin_z_SE","fanyin_x_SW"]},{"y":[6,2,4,5,7,9,1,3,8],"z":[9,5,7,8,1,3,4,6,2],"x":[5,9,7,6,4,2,1,8,3],"zf":1,"xf":0,"k":["shuangxiang","fuyin_x_NE","fuyin_x_S","fanyin_z_W"]},{"y":[6,2,4,5,7,9,1,3,8],"z":[2,6,4,3,1,8,7,5,9],"x":[3,8,1,2,4,6,7,9,5],"zf":0,"xf":1,"k":["shuangzuo","fuyin_z_E","fuyin_z_SW","fanyin_x_N"]},{"y":[6,2,4,5,7,9,1,3,8],"z":[2,6,4,3,1,8,7,5,9],"x":[3,8,1,2,4,6,7,9,5],"zf":0,"xf":1,"k":["shuangzuo","fuyin_z_E","fuyin_z_SW","fanyin_x_N"]},{"y":[6,2,4,5,7,9,1,3,8],"z":[4,9,2,3,5,7,8,1,6],"x":[8,4,6,7,9,2,3,5,1],"zf":1,"xf":1,"k":["shang","fuyin_z","fanyin_z_center","fanyin_x_E"]},{"y":[6,2,4,5,7,9,1,3,8],"z":[6,1,8,7,5,3,2,9,4],"x":[1,5,3,2,9,7,6,4,8],"zf":0,"xf":0,"k":["wang","fanyin_z","fuyin_z_center","fuyin_z_SE","fuyin_x_W","fuyin_x_NW"]},{"y":[6,2,4,5,7,9,1,3,8],"z":[6,1,8,7,5,3,2,9,4],"x":[1,5,3,2,9,7,6,4,8],"zf":0,"xf":0,"k":["wang","fanyin_z","fuyin_z_center","fuyin_z_SE","fuyin_x_W","fuyin_x_NW"]},{"y":[6,2,4,5,7,9,1,3,8],"z":[7,2,9,8,6,4,3,1,5],"x":[9,4,2,1,8,6,5,3,7],"zf":0,"xf":0,"k":["wang","fuyin_z_N","fuyin_z_S","fuyin_x_N","fuyin_x_SW"]},{"y":[6,2,4,5,7,9,1,3,8],"z":[5,1,3,4,6,8,9,2,7],"x":[7,3,5,6,8,1,2,4,9],"zf":1,"xf":1,"k":["shang","fanyin_z_S","fanyin_x_NE","lianzhu"]},{"y":[6,2,4,5,7,9,1,3,8],"z":[5,1,3,4,6,8,9,2,7],"x":[7,3,5,6,8,1,2,4,9],"zf":1,"xf":1,"k":["shang","fanyin_z_S","fanyin_x_NE","lianzhu"]},{"y":[6,2,4,5,7,9,1,3,8],"z":[3,7,5,4,2,9,8,6,1],"x":[2,7,9,1,3,5,6,8,4],"zf":0,"xf":1,"k":["shuangzuo","fuyin_z_NE","fuyin_z_W","fanyin_x_NW"]},{"y":[6,2,4,5,7,9,1,3,8],"z":[1,6,8,9,2,4,5,7,3],"x":[4,8,6,5,3,1,9,7,2],"zf":1,"xf":0,"k":["shuangxiang","quanju","fuyin_x_E","fuyin_x_SE","fanyin_z_SW","kangong"]},{"y":[6,2,4,5,7,9,1,3,8],"z":[1,6,8,9,2,4,5,7,3],"x":[4,8,6,5,3,1,9,7,2],"zf":1,"xf":0,"k":["shuangxiang","quanju","fuyin_x_E","fuyin_x_SE","fanyin_z_SW","kangong"]},{"y":[6,2,4,5,7,9,1,3,8],"z":[5,9,7,6,4,2,1,8,3],"x":[9,5,7,8,1,3,4,6,2],"zf":0,"xf":1,"k":["shuangzuo","fuyin_z_NE","fuyin_z_S","fanyin_x_W"]},{"y":[6,2,4,5,7,9,1,3,8],"z":[3,8,1,2,4,6,7,9,5],"x":[2,6,4,3,1,8,7,5,9],"zf":1,"xf":0,"k":["shuangxiang","fuyin_x_E","fuyin_x_SW","fanyin_z_N"]},{"y":[6,2,4,5,7,9,1,3,8],"z":[3,8,1,2,4,6,7,9,5],"x":[2,6,4,3,1,8,7,5,9],"zf":1,"xf":0,"k":["shuangxiang","fuyin_x_E","fuyin_x_SW","fanyin_z_N"]},{"y":[6,2,4,5,7,9,1,3,8],"z":[8,4,6,7,9,2,3,5,1],"x":[4,9,2,3,5,7,8,1,6],"zf":1,"xf":1,"k":["shang","fuyin_x","fanyin_z_E","fanyin_x_center"]},{"y":[6,2,4,5,7,9,1,3,8],"z":[1,5,3,2,9,7,6,4,8],"x":[6,1,8,7,5,3,2,9,4],"zf":0,"xf":0,"k":["wang","fanyin_x","fuyin_z_W","fuyin_z_NW","fuyin_x_center","fuyin_x_SE"]},{"y":[6,2,4,5,7,9,1,3,8],"z":[1,5,3,2,9,7,6,4,8],"x":[6,1,8,7,5,3,2,9,4],"zf":0,"xf":0,"k":["wang","fanyin_x","fuyin_z_W","fuyin_z_NW","fuyin_x_center","fuyin_x_SE"]},{"y":[6,2,4,5,7,9,1,3,8],"z":[9,4,2,1,8,6,5,3,7],"x":[7,2,9,8,6,4,3,1,5],"zf":0,"xf":0,"k":["wang","fuyin_z_N","fuyin_z_SW","fuyin_x_N","fuyin_x_S"]},{"y":[6,2,4,5,7,9,1,3,8],"z":[7,3,5,6,8,1,2,4,9],"x":[5,1,3,4,6,8,9,2,7],"zf":1,"xf":1,"k":["shang","fanyin_z_NE","fanyin_x_S","lianzhu"]},{"y":[6,2,4,5,7,9,1,3,8],"z":[7,3,5,6,8,1,2,4,9],"x":[5,1,3,4,6,8,9,2,7],"zf":1,"xf":1,"k":["shang","fanyin_z_NE","fanyin_x_S","lianzhu"]}],[{"y":[7,3,5,6,8,1,2,4,9],"z":[5,9,7,6,4,2,1,8,3],"x":[2,7,9,1,3,5,6,8,4],"zf":0,"xf":1,"k":["shuangzuo","fuyin_z_E","fuyin_z_S","fanyin_x_NW"]},{"y":[7,3,5,6,8,1,2,4,9],"z":[3,8,1,2,4,6,7,9,5],"x":[4,8,6,5,3,1,9,7,2],"zf":1,"xf":0,"k":["shuangxiang","fuyin_x_SE","fuyin_x_W","fanyin_z_N","ligong"]},{"y":[7,3,5,6,8,1,2,4,9],"z":[3,8,1,2,4,6,7,9,5],"x":[4,8,6,5,3,1,9,7,2],"zf":1,"xf":0,"k":["shuangxiang","fuyin_x_SE","fuyin_x_W","fanyin_z_N","ligong"]},{"y":[7,3,5,6,8,1,2,4,9],"z":[3,7,5,4,2,9,8,6,1],"x":[6,1,8,7,5,3,2,9,4],"zf":0,"xf":0,"k":["wang","quanju","fanyin_x","fuyin_z_NE","fuyin_z_SW","fuyin_x_center","fuyin_x_NE"]},{"y":[7,3,5,6,8,1,2,4,9],"z":[1,6,8,9,2,4,5,7,3],"x":[4,9,2,3,5,7,8,1,6],"zf":1,"xf":1,"k":["shang","fuyin_x","fanyin_z_SW","fanyin_x_center","fumu"]},{"y":[7,3,5,6,8,1,2,4,9],"z":[1,6,8,9,2,4,5,7,3],"x":[4,9,2,3,5,7,8,1,6],"zf":1,"xf":1,"k":["shang","fuyin_x","fanyin_z_SW","fanyin_x_center","fumu"]},{"y":[7,3,5,6,8,1,2,4,9],"z":[7,2,9,8,6,4,3,1,5],"x":[9,5,7,8,1,3,4,6,2],"zf":0,"xf":1,"k":["shuangzuo","fuyin_z_N","fuyin_z_SE","fanyin_x_W"]},{"y":[7,3,5,6,8,1,2,4,9],"z":[5,1,3,4,6,8,9,2,7],"x":[2,6,4,3,1,8,7,5,9],"zf":1,"xf":0,"k":["shuangxiang","fuyin_x_E","fuyin_x_NW","fanyin_z_S","kangong"]},{"y":[7,3,5,6,8,1,2,4,9],"z":[5,1,3,4,6,8,9,2,7],"x":[2,6,4,3,1,8,7,5,9],"zf":1,"xf":0,"k":["shuangxiang","fuyin_x_E","fuyin_x_NW","fanyin_z_S","kangong"]},{"y":[7,3,5,6,8,1,2,4,9],"z":[6,2,4,5,7,9,1,3,8],"x":[8,4,6,7,9,2,3,5,1],"zf":1,"xf":1,"k":["shang","fanyin_z_SE","fanyin_x_E","lianzhu"]},{"y":[7,3,5,6,8,1,2,4,9],"z":[8,3,1,9,7,5,4,2,6],"x":[1,5,3,2,9,7,6,4,8],"zf":0,"xf":0,"k":["wang","fuyin_z_S","fuyin_z_NW","fuyin_x_N","fuyin_x_W"]},{"y":[7,3,5,6,8,1,2,4,9],"z":[8,3,1,9,7,5,4,2,6],"x":[1,5,3,2,9,7,6,4,8],"zf":0,"xf":0,"k":["wang","fuyin_z_S","fuyin_z_NW","fuyin_x_N","fuyin_x_W"]},{"y":[7,3,5,6,8,1,2,4,9],"z":[2,7,9,1,3,5,6,8,4],"x":[5,9,7,6,4,2,1,8,3],"zf":1,"xf":0,"k":["shuangxiang","fuyin_x_E","fuyin_x_S","fanyin_z_NW","kangong"]},{"y":[7,3,5,6,8,1,2,4,9],"z":[4,8,6,5,3,1,9,7,2],"x":[3,8,1,2,4,6,7,9,5],"zf":0,"xf":1,"k":["shuangzuo","fuyin_z_SE","fuyin_z_W","fanyin_x_N"]},{"y":[7,3,5,6,8,1,2,4,9],"z":[4,8,6,5,3,1,9,7,2],"x":[3,8,1,2,4,6,7,9,5],"zf":0,"xf":1,"k":["shuangzuo","fuyin_z_SE","fuyin_z_W","fanyin_x_N"]},{"y":[7,3,5,6,8,1,2,4,9],"z":[6,1,8,7,5,3,2,9,4],"x":[3,7,5,4,2,9,8,6,1],"zf":0,"xf":0,"k":["wang","quanju","fanyin_z","fuyin_z_center","fuyin_z_NE","fuyin_x_NE","fuyin_x_SW"]},{"y":[7,3,5,6,8,1,2,4,9],"z":[4,9,2,3,5,7,8,1,6],"x":[1,6,8,9,2,4,5,7,3],"zf":1,"xf":1,"k":["shang","fuyin_z","fanyin_z_center","fanyin_x_SW","fumu"]},{"y":[7,3,5,6,8,1,2,4,9],"z":[4,9,2,3,5,7,8,1,6],"x":[1,6,8,9,2,4,5,7,3],"zf":1,"xf":1,"k":["shang","fuyin_z","fanyin_z_center","fanyin_x_SW","fumu"]},{"y":[7,3,5,6,8,1,2,4,9],"z":[9,5,7,8,1,3,4,6,2],"x":[7,2,9,8,6,4,3,1,5],"zf":1,"xf":0,"k":["shuangxiang","fuyin_x_N","fuyin_x_SE","fanyin_z_W","ligong"]},{"y":[7,3,5,6,8,1,2,4,9],"z":[2,6,4,3,1,8,7,5,9],"x":[5,1,3,4,6,8,9,2,7],"zf":0,"xf":1,"k":["shuangzuo","fuyin_z_E","fuyin_z_NW","fanyin_x_S"]},{"y":[7,3,5,6,8,1,2,4,9],"z":[2,6,4,3,1,8,7,5,9],"x":[5,1,3,4,6,8,9,2,7],"zf":0,"xf":1,"k":["shuangzuo","fuyin_z_E","fuyin_z_NW","fanyin_x_S"]},{"y":[7,3,5,6,8,1,2,4,9],"z":[8,4,6,7,9,2,3,5,1],"x":[6,2,4,5,7,9,1,3,8],"zf":1,"xf":1,"k":["shang","fanyin_z_E","fanyin_x_SE","lianzhu"]},{"y":[7,3,5,6,8,1,2,4,9],"z":[1,5,3,2,9,7,6,4,8],"x":[8,3,1,9,7,5,4,2,6],"zf":0,"xf":0,"k":["wang","fuyin_z_N","fuyin_z_W","fuyin_x_S","fuyin_x_NW"]},{"y":[7,3,5,6,8,1,2,4,9],"z":[1,5,3,2,9,7,6,4,8],"x":[8,3,1,9,7,5,4,2,6],"zf":0,"xf":0,"k":["wang","fuyin_z_N","fuyin_z_W","fuyin_x_S","fuyin_x_NW"]}],[{"y":[8,4,6,7,9,2,3,5,1],"z":[4,9,2,3,5,7,8,1,6],"x":[5,9,7,6,4,2,1,8,3],"zf":1,"xf":0,"k":["shuangxiang","fuyin_z","fuyin_x_S","fuyin_x_W","fanyin_z_center"]},{"y":[8,4,6,7,9,2,3,5,1],"z":[6,1,8,7,5,3,2,9,4],"x":[3,8,1,2,4,6,7,9,5],"zf":0,"xf":1,"k":["shuangzuo","fanyin_z","fuyin_z_center","fuyin_z_E","fanyin_x_N"]},{"y":[8,4,6,7,9,2,3,5,1],"z":[6,1,8,7,5,3,2,9,4],"x":[3,8,1,2,4,6,7,9,5],"zf":0,"xf":1,"k":["shuangzuo","fanyin_z","fuyin_z_center","fuyin_z_E","fanyin_x_N"]},{"y":[8,4,6,7,9,2,3,5,1],"z":[2,7,9,1,3,5,6,8,4],"x":[7,2,9,8,6,4,3,1,5],"zf":1,"xf":0,"k":["shuangxiang","fuyin_x_N","fuyin_x_NE","fanyin_z_NW"]},{"y":[8,4,6,7,9,2,3,5,1],"z":[4,8,6,5,3,1,9,7,2],"x":[5,1,3,4,6,8,9,2,7],"zf":0,"xf":1,"k":["shuangzuo","fuyin_z_SE","fuyin_z_SW","fanyin_x_S"]},{"y":[8,4,6,7,9,2,3,5,1],"z":[4,8,6,5,3,1,9,7,2],"x":[5,1,3,4,6,8,9,2,7],"zf":0,"xf":1,"k":["shuangzuo","fuyin_z_SE","fuyin_z_SW","fanyin_x_S"]},{"y":[8,4,6,7,9,2,3,5,1],"z":[6,2,4,5,7,9,1,3,8],"x":[3,7,5,4,2,9,8,6,1],"zf":1,"xf":0,"k":["shuangxiang","fuyin_x_NE","fuyin_x_NW","fanyin_z_SE","kangong"]},{"y":[8,4,6,7,9,2,3,5,1],"z":[8,3,1,9,7,5,4,2,6],"x":[1,6,8,9,2,4,5,7,3],"zf":0,"xf":1,"k":["shuangzuo","fuyin_z_SE","fuyin_z_NW","fanyin_x_SW"]},{"y":[8,4,6,7,9,2,3,5,1],"z":[8,3,1,9,7,5,4,2,6],"x":[1,6,8,9,2,4,5,7,3],"zf":0,"xf":1,"k":["shuangzuo","fuyin_z_SE","fuyin_z_NW","fanyin_x_SW"]},{"y":[8,4,6,7,9,2,3,5,1],"z":[9,4,2,1,8,6,5,3,7],"x":[9,5,7,8,1,3,4,6,2],"zf":0,"xf":1,"k":["shuangzuo","fuyin_z_S","fuyin_z_SW","fanyin_x_W"]},{"y":[8,4,6,7,9,2,3,5,1],"z":[7,3,5,6,8,1,2,4,9],"x":[2,6,4,3,1,8,7,5,9],"zf":1,"xf":0,"k":["shuangxiang","quanju","fuyin_x_N","fuyin_x_E","fanyin_z_NE","ligong"]},{"y":[8,4,6,7,9,2,3,5,1],"z":[7,3,5,6,8,1,2,4,9],"x":[2,6,4,3,1,8,7,5,9],"zf":1,"xf":0,"k":["shuangxiang","quanju","fuyin_x_N","fuyin_x_E","fanyin_z_NE","ligong"]},{"y":[8,4,6,7,9,2,3,5,1],"z":[5,9,7,6,4,2,1,8,3],"x":[4,9,2,3,5,7,8,1,6],"zf":0,"xf":1,"k":["shuangzuo","fuyin_x","fuyin_z_S","fuyin_z_W","fanyin_x_center"]},{"y":[8,4,6,7,9,2,3,5,1],"z":[3,8,1,2,4,6,7,9,5],"x":[6,1,8,7,5,3,2,9,4],"zf":1,"xf":0,"k":["shuangxiang","fanyin_x","fuyin_x_center","fuyin_x_E","fanyin_z_N","kangong"]},{"y":[8,4,6,7,9,2,3,5,1],"z":[3,8,1,2,4,6,7,9,5],"x":[6,1,8,7,5,3,2,9,4],"zf":1,"xf":0,"k":["shuangxiang","fanyin_x","fuyin_x_center","fuyin_x_E","fanyin_z_N","kangong"]},{"y":[8,4,6,7,9,2,3,5,1],"z":[7,2,9,8,6,4,3,1,5],"x":[2,7,9,1,3,5,6,8,4],"zf":0,"xf":1,"k":["shuangzuo","fuyin_z_N","fuyin_z_NE","fanyin_x_NW"]},{"y":[8,4,6,7,9,2,3,5,1],"z":[5,1,3,4,6,8,9,2,7],"x":[4,8,6,5,3,1,9,7,2],"zf":1,"xf":0,"k":["shuangxiang","fuyin_x_SE","fuyin_x_SW","fanyin_z_S"]},{"y":[8,4,6,7,9,2,3,5,1],"z":[5,1,3,4,6,8,9,2,7],"x":[4,8,6,5,3,1,9,7,2],"zf":1,"xf":0,"k":["shuangxiang","fuyin_x_SE","fuyin_x_SW","fanyin_z_S"]},{"y":[8,4,6,7,9,2,3,5,1],"z":[3,7,5,4,2,9,8,6,1],"x":[6,2,4,5,7,9,1,3,8],"zf":0,"xf":1,"k":["shuangzuo","fuyin_z_NE","fuyin_z_NW","fanyin_x_SE"]},{"y":[8,4,6,7,9,2,3,5,1],"z":[1,6,8,9,2,4,5,7,3],"x":[8,3,1,9,7,5,4,2,6],"zf":1,"xf":0,"k":["shuangxiang","fuyin_x_SE","fuyin_x_NW","fanyin_z_SW","ligong"]},{"y":[8,4,6,7,9,2,3,5,1],"z":[1,6,8,9,2,4,5,7,3],"x":[8,3,1,9,7,5,4,2,6],"zf":1,"xf":0,"k":["shuangxiang","fuyin_x_SE","fuyin_x_NW","fanyin_z_SW","ligong"]},{"y":[8,4,6,7,9,2,3,5,1],"z":[9,5,7,8,1,3,4,6,2],"x":[9,4,2,1,8,6,5,3,7],"zf":1,"xf":0,"k":["shuangxiang","fuyin_x_S","fuyin_x_SW","fanyin_z_W","kangong"]},{"y":[8,4,6,7,9,2,3,5,1],"z":[2,6,4,3,1,8,7,5,9],"x":[7,3,5,6,8,1,2,4,9],"zf":0,"xf":1,"k":["shuangzuo","quanju","fuyin_z_N","fuyin_z_E","fanyin_x_NE"]},{"y":[8,4,6,7,9,2,3,5,1],"z":[2,6,4,3,1,8,7,5,9],"x":[7,3,5,6,8,1,2,4,9],"zf":0,"xf":1,"k":["shuangzuo","quanju","fuyin_z_N","fuyin_z_E","fanyin_x_NE"]}]];
+var MTN       = ["壬", "子", "癸", "丑", "艮", "寅", "甲", "卯", "乙", "辰", "巽", "巳", "丙", "午", "丁", "未", "坤", "申", "庚", "酉", "辛", "戌", "乾", "亥"];
+var POS_NAMES = ["巽", "離", "坤", "震", "中宮", "兌", "艮", "坎", "乾"];
+var RED_SET   = {};
+[0, 4, 5, 6, 10, 11, 12, 16, 17, 18, 22, 23].forEach(function(i){RED_SET[i]=true;});
+var YUN_YEARS = ["", "1864-1883", "1884-1903", "1904-1923", "1924-1943", "1944-1963", "1964-1983", "1984-2003", "2004-2023", "2024-2043"];
+var GEJU_DEF  = {"wang": ["旺山旺向", "gt-wang"], "shang": ["上山下水", "gt-shang"], "shuangzuo": ["雙星會坐", "gt-shuangzuo"], "shuangxiang": ["雙星會向", "gt-shuangxiang"], "quanju": ["全局合十", "gt-heshi"], "duigong": ["對宮合十", "gt-heshi"], "fuyin_z": ["坐盤伏吟", "gt-fuyin"], "fuyin_x": ["向盤伏吟", "gt-fuyin"], "fanyin_z": ["坐盤反吟", "gt-fanyin"], "fanyin_x": ["向盤反吟", "gt-fanyin"], "lianzhu": ["連珠三般卦", "gt-sanban"], "fumu": ["父母三般卦", "gt-sanban"], "ligong": ["離宮打劫", "gt-dajie"], "kangong": ["坎宮打劫", "gt-dajie"]};
+var YDP_LIST  = [5, 1, 8, 3, 4, 9, 2, 7, 6];   // 按 ALL_POS 顺序
+var ALL_POS   = ["center", "N", "NE", "E", "SE", "S", "SW", "W", "NW"];
+
+// 单宫格局的宫名（按 ALL_POS 顺序）
+var POS_LABEL = {"center":"中宮","N":"坎宮","NE":"艮宮","E":"震宮",
+                  "SE":"巽宮","S":"離宮","SW":"坤宮","W":"兌宮","NW":"乾宮"};
+
+// ── Canvas 罗盘 ───────────────────────────────────────────────────
+function b2s(b){return b+67.5;}
+
+function drawCompass(canvas, zuoIdx, xiangIdx){
+  var ctx=canvas.getContext('2d');
+  var CX=44,CY=44,RO=42,RI=29;
+  ctx.clearRect(0,0,88,88);
+  ctx.beginPath();ctx.arc(CX,CY,RO,0,Math.PI*2);
+  ctx.fillStyle='#faf7ef';ctx.fill();
+  ctx.strokeStyle='#1a1208';ctx.lineWidth=1;ctx.stroke();
+  ctx.beginPath();ctx.arc(CX,CY,RI,0,Math.PI*2);
+  ctx.fillStyle='#f0ece0';ctx.fill();
+  ctx.strokeStyle='#8b6914';ctx.lineWidth=0.7;ctx.stroke();
+  for(var i=0;i<24;i++){
+    var a1=b2s(i*15)*Math.PI/180, a2=b2s((i+1)*15)*Math.PI/180;
+    ctx.beginPath();
+    ctx.arc(CX,CY,RO,a1,a2);
+    ctx.arc(CX,CY,RI,a2,a1,true);
+    ctx.closePath();
+    ctx.fillStyle=RED_SET[i]?'#ffe8e8':'#f5f0e8';
+    ctx.fill();
+    ctx.strokeStyle='#c8b89a';ctx.lineWidth=0.4;ctx.stroke();
+  }
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  for(var i=0;i<24;i++){
+    var bc=i*15+7.5, ang=b2s(bc)*Math.PI/180, lr=RO-5;
+    var x=CX+lr*Math.cos(ang), y=CY+lr*Math.sin(ang);
+    ctx.save();ctx.translate(x,y);
+    ctx.rotate((b2s(bc)+90)*Math.PI/180);
+    ctx.font='4px Arial';
+    ctx.fillStyle=RED_SET[i]?'#8b2020':'#5a4020';
+    ctx.fillText(MTN[i],0,0);
+    ctx.restore();
+  }
+  ctx.beginPath();ctx.arc(CX,CY,2,0,Math.PI*2);
+  ctx.fillStyle='#8b6914';ctx.fill();
+  var RA=RI-2;
+  var az=b2s(zuoIdx*15+7.5)*Math.PI/180;
+  var ax=b2s(xiangIdx*15+7.5)*Math.PI/180;
+  var tx=CX+RA*Math.cos(az), ty=CY+RA*Math.sin(az);
+  var tipx=CX+RA*Math.cos(ax), tipy=CY+RA*Math.sin(ax);
+  var dx=tipx-tx,dy=tipy-ty,L=Math.sqrt(dx*dx+dy*dy);
+  var ux=dx/L,uy=dy/L,px=-uy,py=ux,hL=6,hW=3.5;
+  ctx.beginPath();ctx.moveTo(tx,ty);ctx.lineTo(tipx,tipy);
+  ctx.strokeStyle='#8b2020';ctx.lineWidth=2;ctx.lineCap='round';ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(tipx,tipy);
+  ctx.lineTo(tipx-ux*hL+px*hW,tipy-uy*hL+py*hW);
+  ctx.lineTo(tipx-ux*hL-px*hW,tipy-uy*hL-py*hW);
+  ctx.closePath();ctx.fillStyle='#8b2020';ctx.fill();
+}
+
+// ── 格局标签 HTML ─────────────────────────────────────────────────
+function buildTags(keys, yunData){
+  var main='', cells='';
+  var hasFullFuZ=keys.indexOf('fuyin_z')>=0;
+  var hasFullFuX=keys.indexOf('fuyin_x')>=0;
+  var hasFullFanZ=keys.indexOf('fanyin_z')>=0;
+  var hasFullFanX=keys.indexOf('fanyin_x')>=0;
+
+  keys.forEach(function(k){
+    if(GEJU_DEF[k]){
+      main+='<span class="gt '+GEJU_DEF[k][1]+'">'+GEJU_DEF[k][0]+'</span>';
+    } else if(k.indexOf('fuyin_z_')===0 && !hasFullFuZ){
+      var pos=k.slice(8);
+      cells+='<span class="gt gt-fuyin-cell">'+POS_LABEL[pos]+'山星伏吟</span>';
+    } else if(k.indexOf('fuyin_x_')===0 && !hasFullFuX){
+      var pos=k.slice(8);
+      cells+='<span class="gt gt-fuyin-cell">'+POS_LABEL[pos]+'向星伏吟</span>';
+    } else if(k.indexOf('fanyin_z_')===0 && !hasFullFanZ){
+      var pos=k.slice(9);
+      cells+='<span class="gt gt-fanyin-cell">'+POS_LABEL[pos]+'山星反吟</span>';
+    } else if(k.indexOf('fanyin_x_')===0 && !hasFullFanX){
+      var pos=k.slice(9);
+      cells+='<span class="gt gt-fanyin-cell">'+POS_LABEL[pos]+'向星反吟</span>';
+    }
+  });
+  return '<div class="tag-col">'+main+(cells?'<div class="cell-tags">'+cells+'</div>':'')+'</div>';
+}
+
+// ── 渲染一个卦局行 ───────────────────────────────────────────────
+function buildRow(yun, zi, d){
+  var xi=(zi+12)%24;
+  // 九宫格
+  var grid='<div class="palace-grid">';
+  for(var j=0;j<9;j++){
+    var isC=(j===4);
+    grid+='<div class="cell'+(isC?' cc':'')+'">'+
+      '<span class="cdir">'+POS_NAMES[j]+'</span>'+
+      '<div class="q q-tl"><span class="sn sz">'+d.z[j]+'</span></div>'+
+      '<div class="q q-tr"><span class="sn sx">'+d.x[j]+'</span></div>'+
+      '<div class="q q-bl"><span class="sn sy">'+d.y[j]+'</span></div>'+
+      '<div class="q q-br"></div></div>';
+  }
+  grid+='</div>';
+
+  var row=document.createElement('div');
+  row.className='dir-row';
+  row.setAttribute('data-zi', zi);
+  row.setAttribute('data-keys', d.k.join(' ')||'none');
+  row.innerHTML=
+    '<div class="dir-label">'+
+      '<div class="zn">坐&nbsp;'+MTN[zi]+'</div>'+
+      '<div class="xn">向&nbsp;'+MTN[xi]+'</div>'+
+      '<div class="fi">坐'+(d.zf?'順':'逆')+'&nbsp;向'+(d.xf?'順':'逆')+'</div>'+
+    '</div>'+
+    '<canvas width="88" height="88"></canvas>'+
+    grid+
+    buildTags(d.k, d);
+
+  // 绘制 canvas
+  var canvas=row.querySelector('canvas');
+  drawCompass(canvas, zi, xi);
+  return row;
+}
+
+// ── 主渲染 ───────────────────────────────────────────────────────
+var currentYun=0;
+
+function applyFilter(){
+  var yv=parseInt(document.getElementById('sel-yun').value);
+  var gv=document.getElementById('sel-geju').value;
+
+  // 更新标题
+  document.getElementById('yun-title').textContent=
+    '第 '+yv+' 運　'+YUN_YEARS[yv];
+
+  // 只在运切换时重建 DOM
+  var list=document.getElementById('chart-list');
+  if(yv!==currentYun){
+    currentYun=yv;
+    // 清空并重建（只有24行）
+    list.innerHTML='';
+    var frag=document.createDocumentFragment();
+    var yunData=DATA[yv-1];
+    for(var zi=0;zi<24;zi++){
+      frag.appendChild(buildRow(yv, zi, yunData[zi]));
+    }
+    list.appendChild(frag);
+  }
+
+  // 格局筛选
+  var rows=list.querySelectorAll('.dir-row');
+  var any=false;
+  rows.forEach(function(r){
+    var keys=r.getAttribute('data-keys')||'';
+    var show=false;
+    if(!gv){ show=true; }
+    else{
+      var parts=keys.split(' ');
+      show=parts.some(function(k){
+        return k===gv||(gv.slice(-1)==='_'&&k.indexOf(gv)===0);
+      });
+    }
+    r.style.display=show?'':'none';
+    if(show) any=true;
+  });
+
+  var nr=document.getElementById('no-result');
+  if(!nr){
+    nr=document.createElement('div');
+    nr.id='no-result';nr.className='no-result';
+    nr.textContent='此運無此格局';
+    list.appendChild(nr);
+  }
+  nr.style.display=any?'none':'block';
+}
+
+applyFilter();
+</script>
+</body>
+</html>

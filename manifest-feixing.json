@@ -1,0 +1,30 @@
+{
+  "name": "玄空飛星全表",
+  "short_name": "飛星全表",
+  "description": "玄空飛星一運至九運二十四山向全表",
+  "start_url": "feixing_table.html",
+  "display": "standalone",
+  "background_color": "#f5f0e8",
+  "theme_color": "#f5f0e8",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon-feixing.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any apple-touch-icon"
+    },
+    {
+      "src": "icon-feixing.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-feixing.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
