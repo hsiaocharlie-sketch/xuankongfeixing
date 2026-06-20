@@ -93,6 +93,8 @@
       grid-template-rows: 1fr 1fr;
     }
     .cell.center { background: #ddd4bb; }
+    .cell.zuo-cell { background: #d2c5a3; }
+    .cell.xiang-cell { background: #e2d8bd; }
     .dir {
       position: absolute;
       top: 4px;
@@ -174,6 +176,8 @@
       position: relative;
     }
     .mini-cell.center { background: #ddd4bb; }
+    .mini-cell.zuo-cell { background: #d2c5a3; }
+    .mini-cell.xiang-cell { background: #e2d8bd; }
     .mini-cell-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -328,9 +332,19 @@
   <p class="subtitle">&#x4E09;&#x5143;&#x4E5D;&#x904B;&#xFF08;1864&#xFF0D;2043&#xFF09;</p>
 
   <div class="input-row">
-    <label>&#x5EFA;&#x9020;&#x5E74;&#x4EFD;&#xFF1A;</label>
-    <input type="number" id="year-input" placeholder="1864&#xFF5E;2043" min="1864" max="2043" />
-    <button onclick="generate()">&#x751F;&#x6210;</button>
+    <label>&#x5EFA;&#x9020;&#x6216;&#x6539;&#x9020;&#x5E74;&#x4EFD;&#xFF1A;</label>
+    <select id="year-input" onchange="generate()">
+      <option value="">-- &#x8ACB;&#x9078;&#x64C7; --</option>
+      <option value="1864">&#x4E00;&#x904B; 1864&#x2013;1883</option>
+      <option value="1884">&#x4E8C;&#x904B; 1884&#x2013;1903</option>
+      <option value="1904">&#x4E09;&#x904B; 1904&#x2013;1923</option>
+      <option value="1924">&#x56DB;&#x904B; 1924&#x2013;1943</option>
+      <option value="1944">&#x4E94;&#x904B; 1944&#x2013;1963</option>
+      <option value="1964">&#x516D;&#x904B; 1964&#x2013;1983</option>
+      <option value="1984">&#x4E03;&#x904B; 1984&#x2013;2003</option>
+      <option value="2004">&#x516B;&#x904B; 2004&#x2013;2023</option>
+      <option value="2024">&#x4E5D;&#x904B; 2024&#x2013;2043</option>
+    </select>
   </div>
   <div class="input-row">
     <label>&#x6D41;&#x5E74;&#xFF1A;</label>
@@ -548,7 +562,7 @@
       return start + "&#xFF0D;" + (start + 19);
     }
 
-    function buildGrid(yunStars, liunianStars, zuoPanStars, xiangPanStars) {
+    function buildGrid(yunStars, liunianStars, zuoPanStars, xiangPanStars, zuoPosArg, xiangPosArg) {
       var grid = document.getElementById("grid");
       grid.innerHTML = "";
       for (var j = 0; j < positions.length; j++) {
@@ -559,7 +573,8 @@
         var lStar = liunianStars[pos];
 
         var cell = document.createElement("div");
-        cell.className = "cell" + (isCenter ? " center" : "");
+        var cellExtra = isCenter ? " center" : (pos === zuoPosArg ? " zuo-cell" : (pos === xiangPosArg ? " xiang-cell" : ""));
+        cell.className = "cell" + cellExtra;
 
         var bl = "<div class='q q-bl'>" +
           "<span class='star-num yun-num'>" + yStar + "</span>" +
@@ -591,8 +606,8 @@
       var year = parseInt(input.value);
 
       if (isNaN(year) || year < 1864 || year > 2043) {
-        errorMsg.innerHTML = "&#x5E74;&#x4EFD;&#x8ACB;&#x5728; 1864 &#x81F3; 2043 &#x4E4B;&#x9593;";
-        infoBar.innerHTML = "&#x8ACB;&#x8F38;&#x5165;&#x5E74;&#x4EFD;&#x4EE5;&#x986F;&#x793A;&#x98DB;&#x661F;&#x76E4;";
+        errorMsg.innerHTML = "&#x8ACB;&#x9078;&#x64C7;&#x5EFA;&#x9020;&#x6216;&#x6539;&#x9020;&#x5E74;&#x4EFD;";
+        infoBar.innerHTML = "&#x8ACB;&#x9078;&#x64C7;&#x5EFA;&#x9020;&#x5E74;&#x4EFD;&#x4EE5;&#x986F;&#x793A;&#x98DB;&#x661F;&#x76E4;";
         updateArrows(null, null);
         return;
       }
@@ -629,7 +644,7 @@
         zuoPanStars = calcStarsWithDir(zuoCenterStar, zuoShun);
         xiangPanStars = calcStarsWithDir(xiangCenterStar, xiangShun);
       }
-      buildGrid(yunStars, liunianStars, zuoPanStars, xiangPanStars);
+      buildGrid(yunStars, liunianStars, zuoPanStars, xiangPanStars, zuoPos, xiangPos);
       buildNineYunGrids();
       var wangMsg = document.getElementById('wang-msg');
       wangMsg.innerHTML = '';
@@ -1257,8 +1272,8 @@
 
         positions.forEach(function(pos) {
           var cell = document.createElement("div");
-          var isKey = (pos === "center" || pos === zuoPos || pos === xiangPos);
-          cell.className = "mini-cell" + (isKey ? " center" : "");
+          var miniExtra = (pos === "center") ? " center" : (pos === zuoPos ? " zuo-cell" : (pos === xiangPos ? " xiang-cell" : ""));
+          cell.className = "mini-cell" + miniExtra;
           var inner = document.createElement("div");
           inner.className = "mini-cell-grid";
           inner.innerHTML =
