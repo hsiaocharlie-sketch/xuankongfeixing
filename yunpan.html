@@ -123,6 +123,75 @@
     .yun-num   { color: #1a1208; }
     .lian-num  { color: #c0392b; }
     .zuo-num   { color: #1a3a6e; }
+    .nineyun-wrap {
+      margin-top: 1.5rem;
+      width: 100%;
+      max-width: 380px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .nineyun-title {
+      font-size: 0.85rem;
+      color: #1a1208;
+      margin-bottom: 0.8rem;
+      font-weight: bold;
+    }
+    .nineyun-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      width: 100%;
+    }
+    .mini-yun-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: rgba(255,255,255,0.4);
+      border: 1px solid #c8b89a;
+      padding: 6px;
+    }
+    .mini-yun-label {
+      font-size: 0.68rem;
+      color: #7a6e5f;
+      margin-bottom: 3px;
+    }
+    .mini-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(3, 1fr);
+      border: 1px solid #1a1208;
+      width: 100%;
+      min-height: 90px;
+    }
+    .mini-cell {
+      border: 0.5px solid #c8b89a;
+      background: #e8dfc8;
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .mini-cell.center { background: #ddd4bb; }
+    .mini-cell-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      width: 100%;
+      height: 100%;
+    }
+    .mini-q {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      font-weight: bold;
+      line-height: 1;
+    }
+    .mini-q-tl { grid-column:1; grid-row:1; color:#1a3a6e; }
+    .mini-q-tr { grid-column:2; grid-row:1; color:#1a6e3c; }
+    .mini-q-bl { grid-column:1; grid-row:2; color:#1a1208; }
     .xiang-num { color: #1a6e3c; }
     .cell::after {
       content: "";
@@ -423,6 +492,11 @@
 </svg>
   </div>
 
+  <div class="nineyun-wrap" id="nineyun-wrap" style="display:none">
+    <p class="nineyun-title" id="nineyun-title"></p>
+    <div class="nineyun-grid" id="nineyun-grid"></div>
+  </div>
+
   <script>
     var starNames = [
       "&#x4E00;&#x767D;","&#x4E8C;&#x9ED1;","&#x4E09;&#x78A7;","&#x56DB;&#x7DA0;",
@@ -556,6 +630,7 @@
         xiangPanStars = calcStarsWithDir(xiangCenterStar, xiangShun);
       }
       buildGrid(yunStars, liunianStars, zuoPanStars, xiangPanStars);
+      buildNineYunGrids();
       var wangMsg = document.getElementById('wang-msg');
       wangMsg.innerHTML = '';
       if (sel.value !== '') {
@@ -1144,6 +1219,63 @@
       btn.innerHTML = '&#x7528; Claude AI &#x5206;&#x6790;&#x98A8;&#x6C34;';
     }
 
+    function buildNineYunGrids() {
+      var sel = document.getElementById("zuoshan-select");
+      var wrap = document.getElementById("nineyun-wrap");
+      if (sel.value === "") { wrap.style.display = "none"; return; }
+
+      var xiangIdx = parseInt(sel.value);
+      var zuoIdx = getXiang(xiangIdx);
+      var zuoPos = mountainToPos[zuoIdx];
+      var xiangPos = mountainToPos[xiangIdx];
+
+      document.getElementById("nineyun-title").innerHTML =
+        mountains[zuoIdx] + "&#x5C71;" + mountains[xiangIdx] + "&#x5411;&#x3000;&#x4E00;&#x904B;&#x81F3;&#x4E5D;&#x904B;&#x5C0D;&#x7167;";
+
+      var grid = document.getElementById("nineyun-grid");
+      grid.innerHTML = "";
+
+      for (var yunN = 1; yunN <= 9; yunN++) {
+        var yunS = calcStars(yunN);
+        var zC = yunS[zuoPos];
+        var xC = yunS[xiangPos];
+        var zShun = isZuoShunFei(zuoIdx, zC);
+        var xShun = isZuoShunFei(xiangIdx, xC);
+        var zP = calcStarsWithDir(zC, zShun);
+        var xP = calcStarsWithDir(xC, xShun);
+
+        var block = document.createElement("div");
+        block.className = "mini-yun-block";
+
+        var label = document.createElement("div");
+        label.className = "mini-yun-label";
+        label.textContent = yunN + "\u904b";
+        block.appendChild(label);
+
+        var miniGrid = document.createElement("div");
+        miniGrid.className = "mini-grid";
+
+        positions.forEach(function(pos) {
+          var cell = document.createElement("div");
+          var isKey = (pos === "center" || pos === zuoPos || pos === xiangPos);
+          cell.className = "mini-cell" + (isKey ? " center" : "");
+          var inner = document.createElement("div");
+          inner.className = "mini-cell-grid";
+          inner.innerHTML =
+            "<div class='mini-q mini-q-tl'>" + zP[pos] + "</div>" +
+            "<div class='mini-q mini-q-tr'>" + xP[pos] + "</div>" +
+            "<div class='mini-q mini-q-bl'>" + yunS[pos] + "</div>" +
+            "<div class='mini-q'></div>";
+          cell.appendChild(inner);
+          miniGrid.appendChild(cell);
+        });
+
+        block.appendChild(miniGrid);
+        grid.appendChild(block);
+      }
+
+      wrap.style.display = "flex";
+    }
 
   </script>
   <div class="ai-section">
