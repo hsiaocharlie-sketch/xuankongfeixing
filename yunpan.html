@@ -302,6 +302,71 @@
     }
     .ai-result.visible { display: block; }
     .ai-loading { color: #7a6e5f; font-style: italic; }
+
+    /* Cell analysis modal */
+    .cell-modal-bg {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.45); z-index: 100;
+      align-items: center; justify-content: center;
+      padding: 1rem;
+    }
+    .cell-modal-bg.show { display: flex; }
+    .cell-modal {
+      background: #f5f0e8; border: 1px solid #c8b89a;
+      border-radius: 4px; width: 100%; max-width: 360px;
+      max-height: 80vh; display: flex; flex-direction: column;
+    }
+    .cell-modal-header {
+      padding: 0.8rem 1rem 0.6rem;
+      border-bottom: 1px solid #c8b89a;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .cell-modal-header h3 { font-size: 0.95rem; color: #1a1208; }
+    .cell-modal-close {
+      font-size: 1.2rem; color: #7a6e5f; cursor: pointer;
+      background: none; border: none; padding: 0 0.3rem;
+    }
+    .cell-modal-body {
+      padding: 0.8rem 1rem;
+      overflow-y: auto; flex: 1;
+    }
+    .cell-modal-nums {
+      display: flex; gap: 0.5rem; margin-bottom: 0.8rem;
+      font-size: 1.4rem; font-weight: bold;
+    }
+    .cell-modal-nums .n-yun  { color: #1a1208; }
+    .cell-modal-nums .n-zuo  { color: #1a3a6e; }
+    .cell-modal-nums .n-xiang{ color: #1a6e3c; }
+    .cell-modal-nums .n-lian { color: #c0392b; }
+    .combo-item {
+      margin-bottom: 0.9rem;
+      padding: 0.6rem 0.7rem;
+      border-left: 3px solid #c8b89a;
+      background: rgba(255,255,255,0.5);
+    }
+    .combo-item.type-daji    { border-color: #c0392b; }
+    .combo-item.type-daxiong    { border-color: #1a1208; }
+    .combo-item.type-zhongji { border-color: #1a6e3c; }
+    .combo-item.type-zhongxiong { border-color: #7a6e5f; }
+    .combo-item.type-teshu    { border-color: #b8962e; }
+    .combo-title {
+      font-size: 0.85rem; font-weight: bold; color: #1a1208;
+      margin-bottom: 0.3rem;
+    }
+    .combo-type {
+      font-size: 0.68rem; padding: 0.1rem 0.4rem;
+      border-radius: 2px; margin-left: 0.4rem;
+      vertical-align: middle;
+    }
+    .type-daji     .combo-type { background: #c0392b; color: white; }
+    .type-daxiong     .combo-type { background: #1a1208; color: white; }
+    .type-zhongji  .combo-type { background: #1a6e3c; color: white; }
+    .type-zhongxiong  .combo-type { background: #7a6e5f; color: white; }
+    .type-teshu     .combo-type { background: #b8962e; color: white; }
+    .combo-analysis { font-size: 0.78rem; color: #1a1208; line-height: 1.7; margin-bottom: 0.3rem; }
+    .combo-remedy   { font-size: 0.75rem; color: #1a3a6e; line-height: 1.6; }
+    .combo-remedy::before { content: "\5316\89E3/\50AC\65FA\FF1A"; font-weight: bold; }
+    .no-combo { font-size: 0.82rem; color: #7a6e5f; text-align: center; padding: 1rem 0; }
     .env-section {
       width: 100%;
       max-width: 360px;
@@ -581,6 +646,15 @@
         var cell = document.createElement("div");
         var cellExtra = isCenter ? " center" : (pos === zuoPosArg ? " zuo-cell" : (pos === xiangPosArg ? " xiang-cell" : ""));
         cell.className = "cell" + cellExtra;
+        cell.style.cursor = "pointer";
+        (function(p, yN, zN, xN, lN) {
+          cell.addEventListener('click', function(){ openCellModal(p, yN, zN, xN, lN); });
+        })(pos,
+          yunStars[pos],
+          zuoPanStars ? zuoPanStars[pos] : 0,
+          xiangPanStars ? xiangPanStars[pos] : 0,
+          liunianStars[pos]
+        );
 
         var bl = "<div class='q q-bl'>" +
           "<span class='star-num yun-num'>" + yStar + "</span>" +
@@ -1298,6 +1372,85 @@
       wrap.style.display = "flex";
     }
 
+  
+    // Cell click analysis
+    function loadFeixingData(callback) {
+      if (typeof FEIXING_DATA !== 'undefined') { callback(); return; }
+      var s = document.createElement('script');
+      s.src = 'feixing_data.js';
+      s.onload = callback;
+      document.head.appendChild(s);
+    }
+
+    function openCellModal(pos, yunN, zuoN, xiangN, lianN) {
+      loadFeixingData(function() {
+        var nums = [yunN, zuoN, xiangN, lianN].filter(function(n){ return n > 0; });
+        var combos = [];
+        var seenKeys = {};
+        for (var a = 0; a < nums.length; a++) {
+          for (var b = 0; b < nums.length; b++) {
+            if (a === b) continue;
+            var key = "" + nums[a] + nums[b];
+            if (FEIXING_DATA[key] && !seenKeys[key]) {
+              seenKeys[key] = true;
+              combos.push({ key: key, data: FEIXING_DATA[key] });
+            }
+          }
+        }
+
+        var guaLabel = {
+          SE:"&#x5DFD;&#x5BAE;", S:"&#x96E2;&#x5BAE;", SW:"&#x5764;&#x5BAE;",
+          E:"&#x9707;&#x5BAE;",  center:"&#x4E2D;&#x5BAE;", W:"&#x514C;&#x5BAE;",
+          NE:"&#x826E;&#x5BAE;", N:"&#x574E;&#x5BAE;", NW:"&#x4E7E;&#x5BAE;"
+        };
+
+        document.getElementById('cell-modal-title').innerHTML =
+          (guaLabel[pos]||pos) + "&#x3000;&#x98DB;&#x661F;&#x7D44;&#x5408;&#x5206;&#x6790;";
+
+        var numsHtml =
+          "<div class='n-yun'>" + yunN + "</div>" +
+          (zuoN > 0 ? "<div class='n-zuo'>" + zuoN + "</div>" : "") +
+          (xiangN > 0 ? "<div class='n-xiang'>" + xiangN + "</div>" : "") +
+          (lianN > 0 ? "<div class='n-lian'>" + lianN + "</div>" : "");
+
+        var bodyHtml = "<div class='cell-modal-nums'>" + numsHtml + "</div>";
+
+        if (combos.length === 0) {
+          bodyHtml += "<div class='no-combo'>&#x6B64;&#x5BAE;&#x4F4D;&#x66AB;&#x7121;&#x7279;&#x5225;&#x7D44;&#x5408;&#x8A18;&#x9304;</div>";
+        } else {
+          combos.forEach(function(c) {
+            var typeKey = c.data.type;
+            var typeClassMap2 = {
+              "\u5927\u5409": "type-daji",
+              "\u5927\u51f6": "type-daxiong",
+              "\u4e2d\u6027\u504f\u5409": "type-zhongji",
+              "\u4e2d\u6027\u504f\u51f6": "type-zhongxiong",
+              "\u7279\u6b8a": "type-teshu"
+            };
+            var cls = typeClassMap2[typeKey] || "type-daji";
+
+            bodyHtml +=
+              "<div class='combo-item " + cls + "'>" +
+                "<div class='combo-title'>" + c.data.title +
+                  "<span class='combo-type'>" + c.data.type + "</span>" +
+                "</div>" +
+                "<div class='combo-analysis'>" + c.data.analysis + "</div>" +
+                "<div class='combo-remedy'>" + c.data.remedy + "</div>" +
+              "</div>";
+          });
+        }
+
+        document.getElementById('cell-modal-body').innerHTML = bodyHtml;
+        document.getElementById('cell-modal-bg').className = 'cell-modal-bg show';
+      });
+    }
+
+    function closeCellModal(e) {
+      if (!e || e.target === document.getElementById('cell-modal-bg')) {
+        document.getElementById('cell-modal-bg').className = 'cell-modal-bg';
+      }
+    }
+
   </script>
   <div class="ai-section">
     <div class="api-row">
@@ -1315,6 +1468,16 @@
     </div>
     <button class="ai-btn" id="ai-btn" onclick="analyzeFS()">&#x7528; Claude AI &#x5206;&#x6790;&#x98A8;&#x6C34;</button>
     <div class="ai-result" id="ai-result"></div>
+  </div>
+  <!-- Cell analysis modal -->
+  <div class="cell-modal-bg" id="cell-modal-bg" onclick="closeCellModal(event)">
+    <div class="cell-modal">
+      <div class="cell-modal-header">
+        <h3 id="cell-modal-title">&#x98DB;&#x661F;&#x7D44;&#x5408;&#x5206;&#x6790;</h3>
+        <button class="cell-modal-close" onclick="closeCellModal()">&times;</button>
+      </div>
+      <div class="cell-modal-body" id="cell-modal-body"></div>
+    </div>
   </div>
 </body>
 </html>
