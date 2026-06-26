@@ -345,10 +345,10 @@
       background: rgba(255,255,255,0.5);
     }
     .combo-item.type-daji    { border-color: #c0392b; }
-    .combo-item.type-daxiong    { border-color: #1a1208; }
-    .combo-item.type-zhongji { border-color: #1a6e3c; }
-    .combo-item.type-zhongxiong { border-color: #7a6e5f; }
-    .combo-item.type-teshu    { border-color: #b8962e; }
+    .combo-item.type-xiaoji  { border-color: #1a6e3c; }
+    .combo-item.type-pingji  { border-color: #b8962e; }
+    .combo-item.type-daxiong { border-color: #1a1208; }
+    .combo-item.type-teshu   { border-color: #7a6e5f; }
     .combo-title {
       font-size: 0.85rem; font-weight: bold; color: #1a1208;
       margin-bottom: 0.3rem;
@@ -647,13 +647,14 @@
         var cellExtra = isCenter ? " center" : (pos === zuoPosArg ? " zuo-cell" : (pos === xiangPosArg ? " xiang-cell" : ""));
         cell.className = "cell" + cellExtra;
         cell.style.cursor = "pointer";
-        (function(p, yN, zN, xN, lN) {
-          cell.addEventListener('click', function(){ openCellModal(p, yN, zN, xN, lN); });
+        (function(p, yN, zN, xN, lN, isZuo) {
+          cell.addEventListener('click', function(){ openCellModal(p, yN, zN, xN, lN, isZuo); });
         })(pos,
           yunStars[pos],
           zuoPanStars ? zuoPanStars[pos] : 0,
           xiangPanStars ? xiangPanStars[pos] : 0,
-          liunianStars[pos]
+          liunianStars[pos],
+          (pos === zuoPosArg)
         );
 
         var bl = "<div class='q q-bl'>" +
@@ -1382,21 +1383,36 @@
       document.head.appendChild(s);
     }
 
-    function openCellModal(pos, yunN, zuoN, xiangN, lianN) {
+    function openCellModal(pos, yunN, zuoN, xiangN, lianN, isZuoCell) {
       loadFeixingData(function() {
-        var nums = [yunN, zuoN, xiangN, lianN].filter(function(n){ return n > 0; });
+        // Determine which pairs to check based on cell type
+        var pairs = [];
+        if (isZuoCell) {
+          // Zuo cell: primary = zuoN (mountain star)
+          pairs = [
+            [zuoN, xiangN],  // zuo-xiang
+            [zuoN, lianN],   // zuo-liunian
+            [zuoN, yunN]     // zuo-yun
+          ];
+        } else {
+          // Other cells: primary = xiangN (facing star)
+          pairs = [
+            [xiangN, zuoN],  // xiang-zuo
+            [xiangN, lianN], // xiang-liunian
+            [xiangN, yunN]   // xiang-yun
+          ];
+        }
         var combos = [];
         var seenKeys = {};
-        for (var a = 0; a < nums.length; a++) {
-          for (var b = 0; b < nums.length; b++) {
-            if (a === b) continue;
-            var key = "" + nums[a] + nums[b];
+        pairs.forEach(function(pair) {
+          if (pair[0] > 0 && pair[1] > 0) {
+            var key = "" + pair[0] + pair[1];
             if (FEIXING_DATA[key] && !seenKeys[key]) {
               seenKeys[key] = true;
               combos.push({ key: key, data: FEIXING_DATA[key] });
             }
           }
-        }
+        });
 
         var guaLabel = {
           SE:"&#x5DFD;&#x5BAE;", S:"&#x96E2;&#x5BAE;", SW:"&#x5764;&#x5BAE;",
@@ -1422,9 +1438,9 @@
             var typeKey = c.data.type;
             var typeClassMap2 = {
               "\u5927\u5409": "type-daji",
+              "\u5c0f\u5409": "type-xiaoji",
+              "\u5e73\u5409": "type-pingji",
               "\u5927\u51f6": "type-daxiong",
-              "\u4e2d\u6027\u504f\u5409": "type-zhongji",
-              "\u4e2d\u6027\u504f\u51f6": "type-zhongxiong",
               "\u7279\u6b8a": "type-teshu"
             };
             var cls = typeClassMap2[typeKey] || "type-daji";
