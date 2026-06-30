@@ -30,7 +30,6 @@ h1{text-align:center;font-size:1.5rem;letter-spacing:.2em;margin-bottom:.2rem}
 #yun-title{font-size:1rem;font-weight:bold;color:#7a3b1e;letter-spacing:.2em;
   text-align:center;padding:.35rem 0;border-top:2px solid #c8b89a;
   border-bottom:1px solid #c8b89a;margin-bottom:.4rem;background:#ede4d0}
-#chart-list{}
 .dir-row{display:flex;align-items:center;gap:7px;margin-bottom:4px;
   padding:3px 5px;background:rgba(255,255,255,.35);border:1px solid #ddd4bb}
 .dir-label{width:50px;min-width:50px;text-align:center;font-size:.7rem;line-height:1.7}
@@ -140,14 +139,10 @@ var RED_SET   = {};
 [0, 4, 5, 6, 10, 11, 12, 16, 17, 18, 22, 23].forEach(function(i){RED_SET[i]=true;});
 var YUN_YEARS = ["", "1864-1883", "1884-1903", "1904-1923", "1924-1943", "1944-1963", "1964-1983", "1984-2003", "2004-2023", "2024-2043"];
 var GEJU_DEF  = {"wang": ["旺山旺向", "gt-wang"], "shang": ["上山下水", "gt-shang"], "shuangzuo": ["雙星會坐", "gt-shuangzuo"], "shuangxiang": ["雙星會向", "gt-shuangxiang"], "quanju": ["全局合十", "gt-heshi"], "duigong": ["對宮合十", "gt-heshi"], "fuyin_z": ["坐盤伏吟", "gt-fuyin"], "fuyin_x": ["向盤伏吟", "gt-fuyin"], "fanyin_z": ["坐盤反吟", "gt-fanyin"], "fanyin_x": ["向盤反吟", "gt-fanyin"], "lianzhu": ["連珠三般卦", "gt-sanban"], "fumu": ["父母三般卦", "gt-sanban"], "ligong": ["離宮打劫", "gt-dajie"], "kangong": ["坎宮打劫", "gt-dajie"]};
-var YDP_LIST  = [5, 1, 8, 3, 4, 9, 2, 7, 6];   // 按 ALL_POS 顺序
-var ALL_POS   = ["center", "N", "NE", "E", "SE", "S", "SW", "W", "NW"];
 
-// 单宫格局的宫名（按 ALL_POS 顺序）
 var POS_LABEL = {"center":"中宮","N":"坎宮","NE":"艮宮","E":"震宮",
                   "SE":"巽宮","S":"離宮","SW":"坤宮","W":"兌宮","NW":"乾宮"};
 
-// ── Canvas 罗盘 ───────────────────────────────────────────────────
 function b2s(b){return b+67.5;}
 
 function drawCompass(canvas, zuoIdx, xiangIdx){
@@ -199,8 +194,7 @@ function drawCompass(canvas, zuoIdx, xiangIdx){
   ctx.closePath();ctx.fillStyle='#8b2020';ctx.fill();
 }
 
-// ── 格局标签 HTML ─────────────────────────────────────────────────
-function buildTags(keys, yunData){
+function buildTags(keys){
   var main='', cells='';
   var hasFullFuZ=keys.indexOf('fuyin_z')>=0;
   var hasFullFuX=keys.indexOf('fuyin_x')>=0;
@@ -227,10 +221,8 @@ function buildTags(keys, yunData){
   return '<div class="tag-col">'+main+(cells?'<div class="cell-tags">'+cells+'</div>':'')+'</div>';
 }
 
-// ── 渲染一个卦局行 ───────────────────────────────────────────────
 function buildRow(yun, zi, d){
   var xi=(zi+12)%24;
-  // 九宫格
   var grid='<div class="palace-grid">';
   for(var j=0;j<9;j++){
     var isC=(j===4);
@@ -255,30 +247,25 @@ function buildRow(yun, zi, d){
     '</div>'+
     '<canvas width="88" height="88"></canvas>'+
     grid+
-    buildTags(d.k, d);
+    buildTags(d.k);
 
-  // 绘制 canvas
   var canvas=row.querySelector('canvas');
   drawCompass(canvas, zi, xi);
   return row;
 }
 
-// ── 主渲染 ───────────────────────────────────────────────────────
 var currentYun=0;
 
 function applyFilter(){
   var yv=parseInt(document.getElementById('sel-yun').value);
   var gv=document.getElementById('sel-geju').value;
 
-  // 更新标题
   document.getElementById('yun-title').textContent=
     '第 '+yv+' 運　'+YUN_YEARS[yv];
 
-  // 只在运切换时重建 DOM
   var list=document.getElementById('chart-list');
   if(yv!==currentYun){
     currentYun=yv;
-    // 清空并重建（只有24行）
     list.innerHTML='';
     var frag=document.createDocumentFragment();
     var yunData=DATA[yv-1];
@@ -288,7 +275,6 @@ function applyFilter(){
     list.appendChild(frag);
   }
 
-  // 格局筛选
   var rows=list.querySelectorAll('.dir-row');
   var any=false;
   rows.forEach(function(r){

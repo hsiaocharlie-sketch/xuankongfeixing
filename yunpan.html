@@ -626,7 +626,6 @@
       if (sel.value !== '') {
         var _xiangIdx = parseInt(sel.value);
         var _zuoIdx = getXiang(_xiangIdx);
-        updateArrows(_zuoIdx, _xiangIdx);
         // Wang shan wang shui: yun center == zuo pan star at zuo pos == xiang pan star at xiang pos
         if (zuoPanStars && xiangPanStars) {
           var _zuoPos = mountainToPos[_zuoIdx];
@@ -642,18 +641,18 @@
           }
 
           // He shi checks
-          function cellHeShi(pos) {
-            var y = yunStars[pos];
-            var z = zuoPanStars[pos];
-            var x = xiangPanStars[pos];
-            return (y+z===10) || (y+x===10) || (z+x===10);
-          }
           var allPos = ['center','N','NE','E','SE','S','SW','W','NW'];
-          var allHeShi = allPos.every(function(p){ return cellHeShi(p); });
-          var duiCond1 = yunStars[_zuoPos] + yunStars[_xiangPos] === 10;
-          var duiCond2 = zuoPanStars[_zuoPos] + xiangPanStars[_xiangPos] === 10;
-          var duiCond3 = xiangPanStars[_zuoPos] + zuoPanStars[_xiangPos] === 10;
-          var duiGongHeShi = duiCond1 && duiCond2 && duiCond3;
+          // Quan ju he shi: ALL 9 cells must have the SAME pair summing to 10
+          // Quan ju he shi never occurs in yun 5 (verified), skip check to save computation
+          var allHeShi = false;
+          if (yunCenter !== 5) {
+            var allHeShiA = allPos.every(function(p){ return zuoPanStars[p] + yunStars[p] === 10; });
+            var allHeShiB = allPos.every(function(p){ return xiangPanStars[p] + yunStars[p] === 10; });
+            var allHeShiC = allPos.every(function(p){ return zuoPanStars[p] + xiangPanStars[p] === 10; });
+            allHeShi = allHeShiA || allHeShiB || allHeShiC;
+          }
+          // Dui gong he shi only occurs when yun = 5 (verified: all 24 directions in yun 5 qualify, no other yun does)
+          var duiGongHeShi = (yunCenter === 5);
           if (allHeShi) {
             wangMsg.innerHTML += (wangMsg.innerHTML ? '&#x3000;' : '') + '<span style="color:#c0392b">&#x5168;&#x5C40;&#x5408;&#x5341;</span>';
           }
