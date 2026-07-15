@@ -310,6 +310,10 @@
   }
   .dy-tags{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
   .tag-sg{font-size:11.5px;color:var(--text-pale);}
+  .tag-sg.sg-click{
+    cursor:pointer;text-decoration:underline;text-decoration-style:dotted;
+    text-underline-offset:2px;
+  }
   .dy-tags .xj{font-size:9.5px;padding:1px 6px;border-radius:8px;font-weight:700;}
   .dy-tags .xj.xi{color:#e8dfc8;background:rgba(176,141,79,.35);}
   .dy-tags .xj.ji{color:#e8dfc8;background:rgba(166,53,44,.35);}
@@ -324,6 +328,7 @@
   }
   .ln-item{
     background:#0e1017;border-radius:3px;padding:6px 3px;text-align:center;
+    cursor:pointer;
   }
   .ln-year{font-size:9px;color:var(--text-dim);}
   .ln-gz{font-family:"Noto Serif SC",serif;font-size:13px;color:#f2ede0;margin:2px 0;}
@@ -793,6 +798,27 @@ function openYongModal(elem){
 }
 function closeYongModal(){
   document.getElementById('yongModal').classList.remove('show');
+}
+
+// 把某一年的实际年龄，映射到年柱/月柱/日柱/时柱四套语境里最贴近的一套
+// （童年0-17 对应"年柱"文案库，青年18-35 对应"月柱"，中年36-59 对应"日柱"，晚年60+ 对应"时柱"）
+function ageToStageKey(age){
+  if(age<18) return '年柱';
+  if(age<36) return '月柱';
+  if(age<60) return '日柱';
+  return '时柱';
+}
+const STAGE_KEY_LABEL = {'年柱':'童年语境','月柱':'青年语境','日柱':'中年语境','时柱':'晚年语境'};
+
+function openShishenModal(sg, xj, age, contextLabel){
+  const stageKey = ageToStageKey(age);
+  const text = getShishenText(stageKey, sg, xj);
+  document.getElementById('modalTitle').textContent = `${sg}（${xj}）`;
+  document.getElementById('modalBody').innerHTML = `
+    <div class="modal-sec"><div class="modal-h">${contextLabel} · 约${age}岁 · 按${STAGE_KEY_LABEL[stageKey]}解读</div><div class="modal-p">${text}</div></div>
+    <div class="modal-caveat">喜/忌是相对这份命盘"旺衰"判断而言的：喜神代表这段时间相对顺、容易借上力；忌神代表这段时间消耗压力更明显，需要多留意调整，不是绝对的吉凶断言。这里按实际年龄套用了命盘四柱里最接近的人生阶段语境，年龄分段是粗略近似，仅供参考。</div>
+  `;
+  document.getElementById('yongModal').classList.add('show');
 }
 
 /* ============================================================
@@ -1346,28 +1372,40 @@ function renderDaYun(r, a, dayun){
     const xj = SHISHEN_CAMP[sg]===xiCamp ? '喜' : '忌';
     const notes = chongHeNotes(p.zhi, r);
     const endAge = p.startAgeYears+9, endYear = p.startYear+9;
+    const midAge = p.startAgeYears+5;
 
     const row = document.createElement('div');
     row.className='dayun-row';
     row.innerHTML = `
       <div class="dy-age">${p.startAgeYears}-${endAge}岁<div class="dy-year">${p.startYear}-${endYear}</div></div>
       <div class="dy-gz">${GAN[p.gan]}${ZHI[p.zhi]}</div>
-      <div class="dy-tags"><span class="tag-sg">${sg}</span><span class="xj ${xj==='喜'?'xi':'ji'}">${xj}</span>${notes.length?`<div class="dy-notes">${notes.join('，')}</div>`:''}</div>
+      <div class="dy-tags"><span class="tag-sg sg-click">${sg}</span><span class="xj ${xj==='喜'?'xi':'ji'}">${xj}</span>${notes.length?`<div class="dy-notes">${notes.join('，')}</div>`:''}</div>
       <div class="dy-arrow">›</div>
     `;
+    const dyTagEl = row.querySelector('.sg-click');
+    dyTagEl.onclick = (e)=>{
+      e.stopPropagation();
+      openShishenModal(sg, xj, midAge, `大运 ${p.startAgeYears}-${endAge}岁（${p.startYear}-${endYear}）`);
+    };
 
     const panel = document.createElement('div');
     panel.className='liunian-panel';
     panel.style.display='none';
-    const lnItems=[];
     for(let k=0;k<10;k++){
       const Y = p.startYear+k;
       const lgan = ((Y-4)%10+10)%10, lzhi = ((Y-4)%12+12)%12;
       const lsg = tenGodOf(dayGanIdx, lgan);
       const lxj = SHISHEN_CAMP[lsg]===xiCamp ? '喜' : '忌';
-      lnItems.push(`<div class="ln-item"><div class="ln-year">${Y}</div><div class="ln-gz">${GAN[lgan]}${ZHI[lzhi]}</div><div class="ln-tag ${lxj==='喜'?'xi':'ji'}">${lsg}·${lxj}</div></div>`);
+      const lnAge = p.startAgeYears + k;
+      const lnItem = document.createElement('div');
+      lnItem.className='ln-item';
+      lnItem.innerHTML = `<div class="ln-year">${Y}</div><div class="ln-gz">${GAN[lgan]}${ZHI[lzhi]}</div><div class="ln-tag ${lxj==='喜'?'xi':'ji'}">${lsg}·${lxj}</div>`;
+      lnItem.onclick = (e)=>{
+        e.stopPropagation();
+        openShishenModal(lsg, lxj, lnAge, `流年 ${Y}年`);
+      };
+      panel.appendChild(lnItem);
     }
-    panel.innerHTML = lnItems.join('');
 
     row.onclick = ()=>{
       const isOpen = panel.style.display!=='none';
