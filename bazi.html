@@ -199,6 +199,67 @@
     padding:0 2px;
   }
   .footnote b{color:var(--brass);font-weight:500;}
+
+  .section-card{
+    background:var(--ink-2);
+    border:1px solid rgba(176,141,79,.25);
+    border-radius:4px;
+    padding:16px 18px;
+    margin-top:14px;
+  }
+  .section-title{
+    font-family:"Noto Serif SC",serif;font-weight:700;
+    font-size:14px;color:var(--brass);letter-spacing:.06em;
+    margin-bottom:12px;
+  }
+
+  .bar-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:12px;}
+  .bar-label{flex:none;width:44px;color:var(--text-dim);}
+  .bar-track{flex:1;height:8px;background:#0e1017;border-radius:4px;overflow:hidden;}
+  .bar-fill{height:100%;border-radius:4px;}
+  .bar-fill.bang{background:var(--brass);}
+  .bar-fill.hao{background:var(--vermillion);}
+  .bar-val{flex:none;width:32px;text-align:right;color:var(--text-pale);font-size:11px;}
+
+  .verdict-line{
+    margin-top:10px;font-size:15px;font-weight:700;color:#f2ede0;
+    font-family:"Noto Serif SC",serif;
+  }
+  .verdict-line .tag{
+    color:var(--vermillion);
+  }
+  .yong-line{
+    margin-top:6px;font-size:13px;color:var(--text-pale);
+  }
+  .yong-line b{color:var(--brass);}
+  .reason-line{
+    margin-top:6px;font-size:12px;color:var(--text-dim);line-height:1.6;
+  }
+
+  .elem-row{display:flex;gap:6px;margin-top:12px;}
+  .elem-chip{
+    flex:1;text-align:center;padding:6px 2px;border-radius:3px;
+    background:#0e1017;border:1px solid rgba(176,141,79,.2);
+  }
+  .elem-chip .en{font-size:13px;color:var(--text-pale);font-weight:600;font-family:"Noto Serif SC",serif;}
+  .elem-chip .ev{font-size:10px;color:var(--text-dim);margin-top:2px;}
+  .elem-chip.yong{border-color:var(--vermillion);background:rgba(166,53,44,.14);}
+  .elem-chip.yong .en{color:#f2ede0;}
+
+  .meaning-item{
+    margin-bottom:10px;padding-bottom:10px;
+    border-bottom:1px solid rgba(176,141,79,.15);
+  }
+  .meaning-item:last-child{margin-bottom:0;padding-bottom:0;border-bottom:none;}
+  .meaning-item .mtitle{
+    font-size:13px;font-weight:700;color:var(--brass);margin-bottom:3px;
+  }
+  .meaning-item .mtitle .mpos{
+    font-size:10.5px;color:var(--text-dim);font-weight:500;margin-left:6px;
+  }
+  .meaning-item .mtext{
+    font-size:12px;color:var(--text-pale);line-height:1.6;
+  }
 </style>
 </head>
 <body>
@@ -240,8 +301,19 @@
     <div class="slips">
       <div class="pillars" id="pillars"></div>
     </div>
+
+    <div class="section-card" id="strengthCard">
+      <div class="section-title">旺衰与用神</div>
+      <div id="strengthBody"></div>
+    </div>
+
+    <div class="section-card" id="meaningCard">
+      <div class="section-title">十神简析</div>
+      <div id="meaningBody"></div>
+    </div>
+
     <div class="footnote">
-      <b>说明：</b>年柱、月柱以“立春”“节”交接为界（非农历正月初一），符合传统命理排法；节气时刻按天文算法实时计算，精度约在分钟级——若生辰恰好落在交节前后十几分钟内，建议核对准确交节时刻。日柱按公历连续干支推算；子时固定以23:00为日界，23:00-23:59 出生按次日的日柱、时柱起算。十神以日干（日主）为基准，分别标注年干、月干、时干，以及四柱地支中所藏天干（本气/中气/余气）；日柱本身标"日主"，不参与自比。
+      <b>说明：</b>年柱、月柱以“立春”“节”交接为界（非农历正月初一），符合传统命理排法；节气时刻按天文算法实时计算，精度约在分钟级——若生辰恰好落在交节前后十几分钟内，建议核对准确交节时刻。日柱按公历连续干支推算；子时固定以23:00为日界，23:00-23:59 出生按次日的日柱、时柱起算。十神以日干（日主）为基准，分别标注年干、月干、时干，以及四柱地支中所藏天干（本气/中气/余气）；日柱本身标"日主"，不参与自比。旺衰用神采用简化扶抑法（月令加权+通根计分），命理界另有调候、病药等不同流派算法，结果仅供参考。
     </div>
   </div>
 
@@ -299,6 +371,95 @@ function tenGodOf(dayGanIdx, targetGanIdx){
   if((targetElem+2)%5 === dayElem) return sameYY ? '七杀' : '正官';
   if((targetElem+1)%5 === dayElem) return sameYY ? '偏印' : '正印';
   return '';
+}
+
+/* ============================================================
+   第一层：十神释义（性格倾向 / 大致对应的人事领域）
+   ============================================================ */
+const SHISHEN_MEANING = {
+  '比肩':'独立自主、重情义讲平等，代表兄弟朋友、同辈竞争，主自我意志力。',
+  '劫财':'外向争强、重义气但易冲动破财，代表朋友、异性缘，主与人争利。',
+  '食神':'温和聪慧、有才艺重享受，代表口福与才艺表达，主创造力与福气。',
+  '伤官':'聪明有主见、善表达但易恃才傲物，代表才华外露，主创新但也易招是非。',
+  '偏财':'豁达擅经营、重人情投资，代表意外之财、父亲，主商业头脑与人脉。',
+  '正财':'稳健务实、重责任储蓄，代表正当收入、妻子(男命)，主勤俭持家。',
+  '七杀':'果断有魄力、抗压强但易冲动强硬，代表压力挑战，主领导力与竞争。',
+  '正官':'自律守规矩、重名誉责任，代表官职地位、丈夫(女命)，主秩序与地位。',
+  '偏印':'独立好思考、直觉敏锐略孤僻，代表偏门技艺，主专业技能与灵感。',
+  '正印':'慈爱包容、重传统学问，代表母亲、学历荫庇，主贵人扶持与保护。'
+};
+
+/* ============================================================
+   第二层：身强身弱 + 用神（简化扶抑法）
+   说明：命理界对旺衰、用神的取法本就有扶抑、调候、病药等多种流派，
+   这里实现的是最常见的"扶抑法"简化版——按月令加权 + 通根计分，
+   仅作为一种参考算法，非唯一标准答案。
+   ============================================================ */
+const SHISHEN_CAMP = {
+  '比肩':'帮身', '劫财':'帮身', '正印':'帮身', '偏印':'帮身',
+  '食神':'耗身', '伤官':'耗身', '正财':'耗身', '偏财':'耗身', '正官':'耗身', '七杀':'耗身'
+};
+
+function analyzeStrength(r){
+  const dayGanIdx = r.day.gan;
+  const dayElem = Math.floor(dayGanIdx/2);
+
+  const items = []; // {stemIdx, weight}
+  items.push({stemIdx:r.year.gan, weight:1.0});
+  items.push({stemIdx:r.month.gan, weight:1.0});
+  items.push({stemIdx:r.hour.gan, weight:1.0});
+
+  const branches = [
+    {zhi:r.year.zhi, isMonth:false},
+    {zhi:r.month.zhi, isMonth:true}, // 月支：月令，权重加倍
+    {zhi:r.day.zhi, isMonth:false},
+    {zhi:r.hour.zhi, isMonth:false}
+  ];
+  branches.forEach(b=>{
+    BRANCH_HIDDEN[b.zhi].forEach((stemIdx, idx)=>{
+      let w = idx===0 ? 1.0 : 0.3; // 本气1.0，中气/余气0.3
+      if(b.isMonth) w *= 2;
+      items.push({stemIdx, weight:w});
+    });
+  });
+
+  const elemScore = [0,0,0,0,0]; // 木火土金水 五行总分（不分帮耗，用于用神选择）
+  let bangScore=0, haoScore=0;
+  items.forEach(it=>{
+    const elem = Math.floor(it.stemIdx/2);
+    elemScore[elem]+=it.weight;
+    const sg = tenGodOf(dayGanIdx, it.stemIdx);
+    if(SHISHEN_CAMP[sg]==='帮身') bangScore+=it.weight; else haoScore+=it.weight;
+  });
+
+  const total = bangScore+haoScore;
+  const diff = bangScore-haoScore;
+  let verdict;
+  if(Math.abs(diff) < total*0.15) verdict='中和';
+  else verdict = diff>0 ? '身强' : '身弱';
+
+  const FIVE_ELEM_NAMES = ['木','火','土','金','水'];
+  let yongElem, yongReason;
+  if(verdict==='身强'){
+    const candidates = [(dayElem+1)%5, (dayElem+2)%5, (dayElem+3)%5]; // 食伤/财/官杀
+    candidates.sort((a,b)=>elemScore[b]-elemScore[a]);
+    yongElem = candidates[0];
+    yongReason = '日主偏强，取克泄耗日主中力量最旺的一行为用神，助其宣泄或制衡。';
+  } else if(verdict==='身弱'){
+    const yinElem = (dayElem+4)%5; // 生我
+    if(elemScore[yinElem] > 0){
+      yongElem = yinElem;
+      yongReason = '日主偏弱，取生扶日主的印星一行为用神，助其得生。';
+    } else {
+      yongElem = dayElem;
+      yongReason = '日主偏弱且盘中印星几乎无根，改取日主本气（比劫）一行为用神，助其自立。';
+    }
+  } else {
+    yongElem = null;
+    yongReason = '日主旺衰接近平衡（中和），此时用神更多取决于调候（寒暖燥湿）等因素，不在扶抑法这套简化逻辑的判断范围内。';
+  }
+
+  return {verdict, bangScore, haoScore, elemScore, yongElem, yongElemName: yongElem!==null?FIVE_ELEM_NAMES[yongElem]:null, yongReason};
 }
 
 /* ============================================================
@@ -563,6 +724,70 @@ function renderPillar(container, labelZh, p, dayGanIdx, isDay){
   container.appendChild(div);
 }
 
+function collectShishenOccurrences(r){
+  const dayGanIdx = r.day.gan;
+  const occ = {};
+  function add(sg, pos){
+    if(!sg) return;
+    if(!occ[sg]) occ[sg]=[];
+    occ[sg].push(pos);
+  }
+  add(tenGodOf(dayGanIdx, r.year.gan), '年干');
+  add(tenGodOf(dayGanIdx, r.month.gan), '月干');
+  add(tenGodOf(dayGanIdx, r.hour.gan), '时干');
+  const branchPos = [['年支',r.year.zhi],['月支',r.month.zhi],['日支',r.day.zhi],['时支',r.hour.zhi]];
+  branchPos.forEach(([label,zhi])=>{
+    BRANCH_HIDDEN[zhi].forEach(stemIdx=>{
+      add(tenGodOf(dayGanIdx, stemIdx), label+'藏干');
+    });
+  });
+  return occ;
+}
+
+function renderMeanings(r){
+  const occ = collectShishenOccurrences(r);
+  const body = document.getElementById('meaningBody');
+  body.innerHTML='';
+  const ORDER = ['比肩','劫财','食神','伤官','偏财','正财','七杀','正官','偏印','正印'];
+  ORDER.forEach(sg=>{
+    if(!occ[sg]) return;
+    const div = document.createElement('div');
+    div.className='meaning-item';
+    div.innerHTML = `<div class="mtitle">${sg}<span class="mpos">${occ[sg].join('、')}</span></div><div class="mtext">${SHISHEN_MEANING[sg]}</div>`;
+    body.appendChild(div);
+  });
+}
+
+function renderStrength(r){
+  const a = analyzeStrength(r);
+  const body = document.getElementById('strengthBody');
+  const total = a.bangScore+a.haoScore;
+  const bangPct = total>0 ? (a.bangScore/total*100) : 50;
+  const haoPct = 100-bangPct;
+  const FIVE_ELEM_NAMES = ['木','火','土','金','水'];
+  const elemChips = FIVE_ELEM_NAMES.map((name,i)=>{
+    const isYong = a.yongElem===i;
+    return `<div class="elem-chip ${isYong?'yong':''}"><div class="en">${name}</div><div class="ev">${a.elemScore[i].toFixed(1)}</div></div>`;
+  }).join('');
+
+  body.innerHTML = `
+    <div class="bar-row">
+      <div class="bar-label">帮身</div>
+      <div class="bar-track"><div class="bar-fill bang" style="width:${bangPct}%"></div></div>
+      <div class="bar-val">${a.bangScore.toFixed(1)}</div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">耗身</div>
+      <div class="bar-track"><div class="bar-fill hao" style="width:${haoPct}%"></div></div>
+      <div class="bar-val">${a.haoScore.toFixed(1)}</div>
+    </div>
+    <div class="verdict-line">日主<span class="tag">${a.verdict}</span></div>
+    <div class="yong-line">${a.yongElemName ? `用神：<b>${a.yongElemName}</b>` : '用神：需结合调候等因素另行判断'}</div>
+    <div class="reason-line">${a.yongReason}</div>
+    <div class="elem-row">${elemChips}</div>
+  `;
+}
+
 document.getElementById('goBtn').onclick = function(){
   const y=Number(selY.value), m=Number(selM.value), d=Number(selD.value);
   const hh=Number(selH.value), mi=Number(selMin.value);
@@ -576,6 +801,9 @@ document.getElementById('goBtn').onclick = function(){
   renderPillar(pillarsEl,'月柱',r.month, dayGanIdx, false);
   renderPillar(pillarsEl,'日柱',r.day, dayGanIdx, true);
   renderPillar(pillarsEl,'时柱',r.hour, dayGanIdx, false);
+
+  renderStrength(r);
+  renderMeanings(r);
 
   const pad=n=>String(n).padStart(2,'0');
   const lunar = solarToLunar(y,m,d);
