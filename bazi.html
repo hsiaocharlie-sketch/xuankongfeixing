@@ -246,19 +246,46 @@
   .elem-chip.yong{border-color:var(--vermillion);background:rgba(166,53,44,.14);}
   .elem-chip.yong .en{color:#f2ede0;}
 
-  .meaning-item{
-    margin-bottom:10px;padding-bottom:10px;
+  .xiji-summary{
+    font-size:12.5px;color:var(--text-pale);line-height:1.7;
+    margin-bottom:14px;padding-bottom:12px;
+    border-bottom:1px solid rgba(176,141,79,.2);
+  }
+  .xiji-summary b{color:var(--brass);}
+
+  .pillar-block{
+    margin-bottom:16px;padding-bottom:14px;
     border-bottom:1px solid rgba(176,141,79,.15);
   }
-  .meaning-item:last-child{margin-bottom:0;padding-bottom:0;border-bottom:none;}
-  .meaning-item .mtitle{
-    font-size:13px;font-weight:700;color:var(--brass);margin-bottom:3px;
+  .pillar-block:last-child{margin-bottom:0;padding-bottom:0;border-bottom:none;}
+  .pb-title{
+    font-size:13px;font-weight:700;color:var(--brass);margin-bottom:8px;
   }
-  .meaning-item .mtitle .mpos{
+  .pb-stage{
     font-size:10.5px;color:var(--text-dim);font-weight:500;margin-left:6px;
   }
-  .meaning-item .mtext{
-    font-size:12px;color:var(--text-pale);line-height:1.6;
+  .sline{
+    display:flex;align-items:center;gap:6px;margin-top:8px;margin-bottom:3px;
+  }
+  .sline .sc{
+    font-family:"Noto Serif SC",serif;font-weight:700;font-size:14px;color:#f2ede0;
+  }
+  .sline .sname{font-size:12.5px;color:var(--text-pale);font-weight:600;}
+  .sline .xj{
+    font-size:10px;padding:1px 6px;border-radius:8px;font-weight:700;
+  }
+  .sline .xj.xi{color:#e8dfc8;background:rgba(176,141,79,.35);}
+  .sline .xj.ji{color:#e8dfc8;background:rgba(166,53,44,.35);}
+  .stext{
+    font-size:12px;color:var(--text-dim);line-height:1.7;
+  }
+
+  .combo-item{margin-top:10px;}
+  .combo-name{
+    font-size:12.5px;font-weight:700;color:#c4645a;margin-bottom:3px;
+  }
+  .combo-note{
+    font-size:10.5px;color:var(--text-dim);margin-top:10px;line-height:1.6;
   }
 </style>
 </head>
@@ -308,7 +335,7 @@
     </div>
 
     <div class="section-card" id="meaningCard">
-      <div class="section-title">十神简析</div>
+      <div class="section-title">十神详解</div>
       <div id="meaningBody"></div>
     </div>
 
@@ -374,20 +401,72 @@ function tenGodOf(dayGanIdx, targetGanIdx){
 }
 
 /* ============================================================
-   第一层：十神释义（性格倾向 / 大致对应的人事领域）
+   第一层：十神释义（喜神/忌神 两套表述，按身强身弱自动选用）
    ============================================================ */
-const SHISHEN_MEANING = {
-  '比肩':'独立自主、重情义讲平等，代表兄弟朋友、同辈竞争，主自我意志力。',
-  '劫财':'外向争强、重义气但易冲动破财，代表朋友、异性缘，主与人争利。',
-  '食神':'温和聪慧、有才艺重享受，代表口福与才艺表达，主创造力与福气。',
-  '伤官':'聪明有主见、善表达但易恃才傲物，代表才华外露，主创新但也易招是非。',
-  '偏财':'豁达擅经营、重人情投资，代表意外之财、父亲，主商业头脑与人脉。',
-  '正财':'稳健务实、重责任储蓄，代表正当收入、妻子(男命)，主勤俭持家。',
-  '七杀':'果断有魄力、抗压强但易冲动强硬，代表压力挑战，主领导力与竞争。',
-  '正官':'自律守规矩、重名誉责任，代表官职地位、丈夫(女命)，主秩序与地位。',
-  '偏印':'独立好思考、直觉敏锐略孤僻，代表偏门技艺，主专业技能与灵感。',
-  '正印':'慈爱包容、重传统学问，代表母亲、学历荫庇，主贵人扶持与保护。'
+const SHISHEN_DUAL = {
+  '比肩':{
+    pos:'自立自强，遇事有底气不轻易服输；身边多同辈相助，靠自己打拼也能站稳脚跟；重情重义，愿意为朋友两肋插刀。',
+    neg:'主观固执，不轻易听劝，容易与人争执较劲；破财漏财，钱财容易被平辈朋友分薄或合伙拖累；六亲缘分偏淡，凡事习惯自己扛。'
+  },
+  '劫财':{
+    pos:'有闯劲有魄力，关键时刻能孤注一掷搏一把；人脉广，朋友多能互相扶持，遇急难有人搭手。',
+    neg:'破财较重，容易因朋友、合伙人拖累而破财；争强好胜，容易招惹是非口舌；感情上桃花杂乱，婚姻易受第三者影响。'
+  },
+  '食神':{
+    pos:'心思细腻温和，审美和表达能力强，适合文艺、策划、美食相关领域；性格乐观，懂得享受生活，福气厚重，子女缘佳。',
+    neg:'过度耗泄精力，容易操心命、想太多，睡眠体力容易透支；理想化不擅算计，赚钱辛苦却总是不温不火；女命食神过旺克官，感情上容易对伴侣过于挑剔，婚姻推迟或波折。'
+  },
+  '伤官':{
+    pos:'才华横溢，脑洞大有创意，适合技术、设计、自由职业等靠才华吃饭的路子；敢想敢做，不愿受传统束缚，容易在新兴领域出头。',
+    neg:'叛逆心强，容易与权威、领导起冲突，职场不易久留；情绪敏感易走极端，遇压力容易钻牛角尖；伤官克官，感情婚姻多反复，需要更多耐心经营。'
+  },
+  '正财':{
+    pos:'踏实务实，工作勤恳，收入稳定细水长流；重视家庭责任，会过日子懂得积累；男命正财旺，婚姻较稳固顾家。',
+    neg:'过于看重物质和金钱得失，容易变得斤斤计较；为财奔波劳碌，压力大却难有大突破；男命正财过旺易被钱财、感情琐事分心，忽略自身成长。'
+  },
+  '偏财':{
+    pos:'有商业头脑，擅长交际和把握机会，容易得意外之财；人缘广、豁达大方，适合经商或投资相关行业。',
+    neg:'容易见钱眼开，投机心重，破财风险也随之增加；感情上容易见异思迁，桃花多而不专；花钱大手大脚，难以积蓄。'
+  },
+  '正官':{
+    pos:'自律守规矩，做事讲原则有分寸，适合体制内、管理类工作；名誉责任感强，容易获得社会认可和地位；女命正官为夫星，感情婚姻较稳定顺遂。',
+    neg:'压力大、束缚感强，容易觉得处处受限不自由；过分在意别人看法，活得拘谨；女命正官过多，感情选择纠结，容易面临多重压力或责任。'
+  },
+  '七杀':{
+    pos:'魄力十足，抗压能力强，适合竞争激烈或需要决断力的领域；有领导才能，关键时刻敢拼敢闯。',
+    neg:'压力山大，容易焦虑紧张，身体上也容易亮红灯；性格强硬冲动，容易与人对抗或树敌；感情上压迫感强，容易遇到强势或不稳定的对象。'
+  },
+  '正印':{
+    pos:'心地善良包容，重视传统和学问，容易得长辈贵人扶持庇护；学习能力强，适合做学术、教育相关工作；一生福厚，晚年安稳。',
+    neg:'过度依赖他人，缺乏独立行动力，容易懒散拖延；想法保守传统，不容易接受新事物；容易溺爱或被溺爱，界限感模糊。'
+  },
+  '偏印':{
+    pos:'直觉敏锐，善于钻研偏门或专业技能，适合技术、玄学、医术等领域；独立思考能力强，不轻易随大流。',
+    neg:'性格孤僻内向，不擅表达情感，容易钻牛角尖；多疑敏感，人际关系容易疏离；女命偏印过旺，不利子女缘，或与母系亲缘较淡。'
+  }
 };
+
+/* ============================================================
+   第三层：十神组合关系（简化版，仅按"整盘是否同时出现"判断，
+   不考虑天干地支相邻、合冲等更细的位置关系——那部分流派分歧更大，
+   这里先给出最常被引用的几组经典组合）
+   ============================================================ */
+const COMBO_RULES = [
+  {name:'食伤生财', need:[['食神','伤官'],['正财','偏财']],
+   text:'食伤生财：有才华变现的能力，容易凭专业技能、创意或口才获取财富，适合靠自己本事吃饭的路子。'},
+  {name:'伤官见官', need:[['伤官'],['正官']],
+   text:'伤官见官：个性与规则容易产生冲突，职场上不喜被约束、易顶撞权威；婚姻感情也容易出现波折反复，需要更多耐心经营关系。'},
+  {name:'比劫夺财', need:[['比肩','劫财'],['正财','偏财']],
+   text:'比劫夺财：身边人（朋友、合伙人、平辈）容易分薄你的钱财或资源，投资合伙需格外谨慎，避免财务被人拖累。'},
+  {name:'印星化杀', need:[['七杀'],['正印','偏印']],
+   text:'印星化杀：外来的压力、挑战能够被转化为动力和成长的养分，遇强压时反而容易激发潜力、承担更大责任。'},
+  {name:'枭神夺食', need:[['偏印'],['食神']],
+   text:'枭神夺食：想法多、创意多，但容易犹豫反复、难以专注落地；也要留意健康、睡眠和才艺发挥上的波动起伏。'},
+  {name:'财旺生官', need:[['正财','偏财'],['正官']],
+   text:'财旺生官：财富与事业地位相互促进，容易靠稳健积累获得社会认可，是名利双收的组合。'},
+  {name:'官杀混杂', need:[['正官'],['七杀']],
+   text:'官杀混杂：责任规则与压力竞争同时出现，做事容易左右为难、身兼多重角色；感情上对象或选择也容易不够专一、多有周折（女命尤其明显）。'}
+];
 
 /* ============================================================
    第二层：身强身弱 + 用神（简化扶抑法）
@@ -727,39 +806,100 @@ function renderPillar(container, labelZh, p, dayGanIdx, isDay){
 function collectShishenOccurrences(r){
   const dayGanIdx = r.day.gan;
   const occ = {};
-  function add(sg, pos){
+  function add(sg){
     if(!sg) return;
-    if(!occ[sg]) occ[sg]=[];
-    occ[sg].push(pos);
+    occ[sg] = (occ[sg]||0) + 1;
   }
-  add(tenGodOf(dayGanIdx, r.year.gan), '年干');
-  add(tenGodOf(dayGanIdx, r.month.gan), '月干');
-  add(tenGodOf(dayGanIdx, r.hour.gan), '时干');
-  const branchPos = [['年支',r.year.zhi],['月支',r.month.zhi],['日支',r.day.zhi],['时支',r.hour.zhi]];
-  branchPos.forEach(([label,zhi])=>{
-    BRANCH_HIDDEN[zhi].forEach(stemIdx=>{
-      add(tenGodOf(dayGanIdx, stemIdx), label+'藏干');
-    });
+  add(tenGodOf(dayGanIdx, r.year.gan));
+  add(tenGodOf(dayGanIdx, r.month.gan));
+  add(tenGodOf(dayGanIdx, r.hour.gan));
+  [r.year.zhi, r.month.zhi, r.day.zhi, r.hour.zhi].forEach(zhi=>{
+    BRANCH_HIDDEN[zhi].forEach(stemIdx=>{ add(tenGodOf(dayGanIdx, stemIdx)); });
   });
   return occ;
 }
 
-function renderMeanings(r){
-  const occ = collectShishenOccurrences(r);
-  const body = document.getElementById('meaningBody');
-  body.innerHTML='';
-  const ORDER = ['比肩','劫财','食神','伤官','偏财','正财','七杀','正官','偏印','正印'];
-  ORDER.forEach(sg=>{
-    if(!occ[sg]) return;
-    const div = document.createElement('div');
-    div.className='meaning-item';
-    div.innerHTML = `<div class="mtitle">${sg}<span class="mpos">${occ[sg].join('、')}</span></div><div class="mtext">${SHISHEN_MEANING[sg]}</div>`;
-    body.appendChild(div);
-  });
+function collectPillarBreakdown(r){
+  const dayGanIdx = r.day.gan;
+  const pillars = [
+    {name:'年柱', stemLabel:'年干', stemIdx:r.year.gan, zhi:r.year.zhi, stage:'童年 · 祖辈 · 早年性格底色（约0–18岁）', isDayPillar:false},
+    {name:'月柱', stemLabel:'月干', stemIdx:r.month.gan, zhi:r.month.zhi, stage:'青年 · 事业人际 · 内心性格（约18–36岁）', isDayPillar:false},
+    {name:'日柱', stemLabel:'日干', stemIdx:r.day.gan, zhi:r.day.zhi, stage:'日干为自身；日支主中年、婚姻、内心安全感', isDayPillar:true},
+    {name:'时柱', stemLabel:'时干', stemIdx:r.hour.gan, zhi:r.hour.zhi, stage:'晚年 · 子女 · 外在才华（约36岁后）', isDayPillar:false}
+  ];
+  return pillars.map(p=>({
+    ...p,
+    stemChar: GAN[p.stemIdx],
+    stemShishen: p.isDayPillar ? '日主' : tenGodOf(dayGanIdx, p.stemIdx),
+    hiddenList: BRANCH_HIDDEN[p.zhi].map(stemIdx=>({stem:GAN[stemIdx], shishen:tenGodOf(dayGanIdx, stemIdx)}))
+  }));
 }
 
-function renderStrength(r){
-  const a = analyzeStrength(r);
+function detectCombos(occ){
+  return COMBO_RULES.filter(rule=> rule.need.every(group=> group.some(g=>occ[g])));
+}
+
+function renderMeanings(r, a){
+  const occ = collectShishenOccurrences(r);
+  const xiCamp = a.bangScore >= a.haoScore ? '耗身' : '帮身'; // 喜神所在阵营
+  const xiGods = xiCamp==='帮身' ? ['比肩','劫财','正印','偏印'] : ['食神','伤官','正财','偏财','正官','七杀'];
+  const jiGods = xiCamp==='帮身' ? ['食神','伤官','正财','偏财','正官','七杀'] : ['比肩','劫财','正印','偏印'];
+
+  const body = document.getElementById('meaningBody');
+  body.innerHTML='';
+
+  const summary = document.createElement('div');
+  summary.className='xiji-summary';
+  const nearNote = a.verdict==='中和' ? '（旺衰接近中和，喜忌区分不如身强身弱分明的命那么绝对，供参考）' : '';
+  summary.innerHTML = `日主<b>${a.verdict}</b>：喜 ${xiGods.join('、')}；忌 ${jiGods.join('、')}${nearNote}`;
+  body.appendChild(summary);
+
+  function xjTag(sg){
+    if(!sg || sg==='日主') return null;
+    return SHISHEN_CAMP[sg]===xiCamp ? '喜' : '忌';
+  }
+  function lineHtml(charLabel, stemChar, sg){
+    if(sg==='日主'){
+      return `<div class="sline"><span class="sc">${stemChar}</span><span class="sname">日主</span></div><div class="stext">命主自身，不参与喜忌自比。</div>`;
+    }
+    const xj = xjTag(sg);
+    const d = SHISHEN_DUAL[sg];
+    let text = xj==='喜' ? d.pos : d.neg;
+    if(occ[sg]>=3) text += `（此十神在盘中出现${occ[sg]}次，作用被放大）`;
+    return `<div class="sline"><span class="sc">${stemChar}</span><span class="sname">${sg}</span><span class="xj ${xj==='喜'?'xi':'ji'}">${xj}</span></div><div class="stext">${text}</div>`;
+  }
+
+  const pillars = collectPillarBreakdown(r);
+  pillars.forEach(p=>{
+    const div = document.createElement('div');
+    div.className='pillar-block';
+    let html = `<div class="pb-title">${p.name}<span class="pb-stage">${p.stage}</span></div>`;
+    html += lineHtml(p.stemLabel, p.stemChar, p.stemShishen);
+    p.hiddenList.forEach(h=>{
+      html += lineHtml('藏干', h.stem, h.shishen);
+    });
+    div.innerHTML = html;
+    body.appendChild(div);
+  });
+
+  const combos = detectCombos(occ);
+  if(combos.length>0){
+    const comboDiv = document.createElement('div');
+    comboDiv.className='pillar-block';
+    let html = `<div class="pb-title">十神组合</div>`;
+    combos.forEach(c=>{
+      html += `<div class="combo-item"><div class="combo-name">${c.name}</div><div class="stext">${c.text}</div></div>`;
+    });
+    comboDiv.innerHTML = html;
+    body.appendChild(comboDiv);
+    const note = document.createElement('div');
+    note.className='combo-note';
+    note.textContent = '以上组合仅按"整盘是否同时出现"判断，未考虑天干地支相邻、合冲等更细的位置关系，供参考。';
+    body.appendChild(note);
+  }
+}
+
+function renderStrength(r, a){
   const body = document.getElementById('strengthBody');
   const total = a.bangScore+a.haoScore;
   const bangPct = total>0 ? (a.bangScore/total*100) : 50;
@@ -802,8 +942,9 @@ document.getElementById('goBtn').onclick = function(){
   renderPillar(pillarsEl,'日柱',r.day, dayGanIdx, true);
   renderPillar(pillarsEl,'时柱',r.hour, dayGanIdx, false);
 
-  renderStrength(r);
-  renderMeanings(r);
+  const a = analyzeStrength(r);
+  renderStrength(r, a);
+  renderMeanings(r, a);
 
   const pad=n=>String(n).padStart(2,'0');
   const lunar = solarToLunar(y,m,d);
