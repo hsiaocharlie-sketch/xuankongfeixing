@@ -328,7 +328,12 @@
   }
   .ln-item{
     background:#0e1017;border-radius:3px;padding:6px 3px;text-align:center;
-    cursor:pointer;
+    cursor:pointer;position:relative;
+  }
+  .ln-item.has-note::after{
+    content:"";position:absolute;top:3px;right:3px;
+    width:5px;height:5px;border-radius:50%;
+    background:var(--vermillion);
   }
   .ln-year{font-size:9px;color:var(--text-dim);}
   .ln-gz{font-family:"Noto Serif SC",serif;font-size:13px;color:#f2ede0;margin:2px 0;}
@@ -996,15 +1001,19 @@ function ageToFlowingBracket(age){
   return '中老年';
 }
 
-function openShishenModal(sg, xj, age, contextLabel, facts){
+function openShishenModal(sg, xj, age, contextLabel, facts, notes){
   const bracket = ageToFlowingBracket(age);
   const generalText = annotateText(getFlowingShishenText(bracket, sg, xj), facts);
   const familyTextRaw = getFlowingFamilyText(bracket, sg, xj);
   const familyText = familyTextRaw ? annotateText(familyTextRaw, facts) : null;
+  const notesHtml = (notes && notes.length)
+    ? `<div class="modal-sec"><div class="modal-h">冲合提示</div><div class="modal-p">${notes.join('，')}——冲代表这段时间容易有变动、波动感更强；合代表容易牵绊、也可能带来助力，两者都不是单纯的吉或凶。</div></div>`
+    : '';
   document.getElementById('modalTitle').textContent = `${sg}（${xj}）`;
   document.getElementById('modalBody').innerHTML = `
     <div class="modal-sec"><div class="modal-h">${contextLabel} · 约${age}岁 · ${bracket} · 整体运势</div><div class="modal-p">${generalText}</div></div>
     ${familyText ? `<div class="modal-sec"><div class="modal-h">婚姻家庭</div><div class="modal-p">${familyText}</div></div>` : ''}
+    ${notesHtml}
     <div class="modal-caveat">喜/忌是相对这份命盘"旺衰"判断而言的：喜神代表这段时间相对顺、容易借上力；忌神代表这段时间消耗压力更明显，需要多留意调整，不是绝对的吉凶断言。年龄分段是粗略近似，仅供参考。</div>
   `;
   document.getElementById('yongModal').classList.add('show');
@@ -1544,6 +1553,13 @@ function chongHeNotes(zhi, r){
   });
   return notes;
 }
+// 流年专用：既对比命盘原局四支，也对比当前所走大运的地支
+function chongHeNotesForLiunian(zhi, r, dayunZhi){
+  const notes = chongHeNotes(zhi, r);
+  if(isChong(zhi, dayunZhi)) notes.push(`冲大运${ZHI[dayunZhi]}`);
+  if(isLiuHe(zhi, dayunZhi)) notes.push(`合大运${ZHI[dayunZhi]}`);
+  return notes;
+}
 
 function renderDaYun(r, a, dayun, facts){
   const dayGanIdx = r.day.gan;
@@ -1574,7 +1590,7 @@ function renderDaYun(r, a, dayun, facts){
     const dyTagEl = row.querySelector('.sg-click');
     dyTagEl.onclick = (e)=>{
       e.stopPropagation();
-      openShishenModal(sg, xj, midAge, `大运 ${p.startAgeYears}-${endAge}岁（${p.startYear}-${endYear}）`, facts);
+      openShishenModal(sg, xj, midAge, `大运 ${p.startAgeYears}-${endAge}岁（${p.startYear}-${endYear}）`, facts, notes);
     };
 
     const panel = document.createElement('div');
@@ -1586,12 +1602,13 @@ function renderDaYun(r, a, dayun, facts){
       const lsg = tenGodOf(dayGanIdx, lgan);
       const lxj = SHISHEN_CAMP[lsg]===xiCamp ? '喜' : '忌';
       const lnAge = p.startAgeYears + k;
+      const lnNotes = chongHeNotesForLiunian(lzhi, r, p.zhi);
       const lnItem = document.createElement('div');
-      lnItem.className='ln-item';
+      lnItem.className='ln-item' + (lnNotes.length ? ' has-note' : '');
       lnItem.innerHTML = `<div class="ln-year">${Y}</div><div class="ln-gz">${GAN[lgan]}${ZHI[lzhi]}</div><div class="ln-tag ${lxj==='喜'?'xi':'ji'}">${lsg}·${lxj}</div>`;
       lnItem.onclick = (e)=>{
         e.stopPropagation();
-        openShishenModal(lsg, lxj, lnAge, `流年 ${Y}年`, facts);
+        openShishenModal(lsg, lxj, lnAge, `流年 ${Y}年`, facts, lnNotes);
       };
       panel.appendChild(lnItem);
     }
