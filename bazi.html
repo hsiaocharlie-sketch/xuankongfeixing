@@ -104,6 +104,16 @@
     text-align:center;letter-spacing:.04em;font-weight:500;
   }
 
+  .gender-row{display:flex;gap:8px;}
+  .gender-btn{
+    flex:1;background:#0e1017;border:1px solid rgba(176,141,79,.3);
+    color:var(--text-dim);padding:10px 8px;font-size:14px;border-radius:3px;
+    cursor:pointer;font-family:"Noto Serif SC","Noto Sans SC",sans-serif;
+  }
+  .gender-btn.active{
+    border-color:var(--vermillion);color:#f2ede0;background:rgba(166,53,44,.14);
+  }
+
   .go{
     width:100%;margin-top:18px;
     background:var(--vermillion);
@@ -275,6 +285,72 @@
     font-size:11px;color:var(--text-ink-dim);line-height:1.7;
     margin-top:16px;padding-top:12px;border-top:1px solid var(--paper-line);
   }
+
+  .dayun-header{
+    font-size:12.5px;color:var(--text-pale);line-height:1.7;
+    margin-bottom:12px;padding-bottom:10px;
+    border-bottom:1px solid rgba(176,141,79,.2);
+  }
+  .dayun-header b{color:var(--brass);}
+
+  .dayun-row{
+    display:grid;
+    grid-template-columns:52px 40px 1fr 14px;
+    align-items:center;gap:10px;
+    padding:9px 4px;
+    border-bottom:1px solid rgba(176,141,79,.12);
+    cursor:pointer;
+  }
+  .dayun-row:last-of-type{border-bottom:none;}
+  .dy-age{font-size:11.5px;color:var(--text-pale);line-height:1.4;}
+  .dy-year{font-size:9.5px;color:var(--text-dim);}
+  .dy-gz{
+    font-family:"Noto Serif SC",serif;font-weight:700;font-size:17px;
+    color:#f2ede0;text-align:center;letter-spacing:1px;
+  }
+  .dy-tags{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+  .tag-sg{font-size:11.5px;color:var(--text-pale);}
+  .dy-tags .xj{font-size:9.5px;padding:1px 6px;border-radius:8px;font-weight:700;}
+  .dy-tags .xj.xi{color:#e8dfc8;background:rgba(176,141,79,.35);}
+  .dy-tags .xj.ji{color:#e8dfc8;background:rgba(166,53,44,.35);}
+  .dy-notes{font-size:10px;color:var(--vermillion-dim);width:100%;margin-top:2px;}
+  .dy-arrow{color:var(--text-dim);font-size:14px;transition:transform .15s;}
+  .dayun-row.open .dy-arrow{transform:rotate(90deg);}
+
+  .liunian-panel{
+    display:grid;grid-template-columns:repeat(5,1fr);gap:6px;
+    padding:10px 4px 14px;
+    border-bottom:1px solid rgba(176,141,79,.12);
+  }
+  .ln-item{
+    background:#0e1017;border-radius:3px;padding:6px 3px;text-align:center;
+  }
+  .ln-year{font-size:9px;color:var(--text-dim);}
+  .ln-gz{font-family:"Noto Serif SC",serif;font-size:13px;color:#f2ede0;margin:2px 0;}
+  .ln-tag{font-size:8.5px;padding:1px 3px;border-radius:6px;display:inline-block;}
+  .ln-tag.xi{color:#e8dfc8;background:rgba(176,141,79,.35);}
+  .ln-tag.ji{color:#e8dfc8;background:rgba(166,53,44,.35);}
+
+  .stage-block{
+    margin-bottom:16px;padding-bottom:14px;
+    border-bottom:1px solid rgba(176,141,79,.15);
+  }
+  .stage-block:last-child{margin-bottom:0;padding-bottom:0;border-bottom:none;}
+  .stage-title{
+    font-family:"Noto Serif SC",serif;font-weight:700;font-size:14px;
+    color:#f2ede0;margin-bottom:2px;
+  }
+  .stage-sub{font-size:10.5px;color:var(--text-dim);margin-bottom:10px;}
+  .stage-sentence{
+    font-size:12.5px;color:var(--text-pale);line-height:1.75;margin-bottom:8px;
+  }
+  .stage-sentence b{color:var(--brass);}
+  .stage-tone{
+    font-size:12px;color:#c4645a;line-height:1.7;
+    margin-top:10px;padding-top:10px;border-top:1px dashed rgba(176,141,79,.2);
+    font-style:italic;
+  }
+
   .reason-line{
     margin-top:6px;font-size:12px;color:var(--text-dim);line-height:1.6;
   }
@@ -363,6 +439,14 @@
       <div class="shichen" id="shichenHint"></div>
     </div>
 
+    <div class="field">
+      <label>性别（用于大运顺排/逆排）</label>
+      <div class="gender-row">
+        <button type="button" class="gender-btn active" id="genMale">男</button>
+        <button type="button" class="gender-btn" id="genFemale">女</button>
+      </div>
+    </div>
+
     <button class="go" id="goBtn">起　盘</button>
   </div>
 
@@ -377,13 +461,23 @@
       <div id="strengthBody"></div>
     </div>
 
+    <div class="section-card" id="stageCard">
+      <div class="section-title">人生阶段解读</div>
+      <div id="stageBody"></div>
+    </div>
+
+    <div class="section-card" id="dayunCard">
+      <div class="section-title">大运流年</div>
+      <div id="dayunBody"></div>
+    </div>
+
     <div class="section-card" id="meaningCard">
       <div class="section-title">十神详解</div>
       <div id="meaningBody"></div>
     </div>
 
     <div class="footnote">
-      <b>说明：</b>年柱、月柱以“立春”“节”交接为界（非农历正月初一），符合传统命理排法；节气时刻按天文算法实时计算，精度约在分钟级——若生辰恰好落在交节前后十几分钟内，建议核对准确交节时刻。日柱按公历连续干支推算；子时固定以23:00为日界，23:00-23:59 出生按次日的日柱、时柱起算。十神以日干（日主）为基准，分别标注年干、月干、时干，以及四柱地支中所藏天干（本气/中气/余气）；日柱本身标"日主"，不参与自比。旺衰用神采用简化扶抑法（月令加权+通根计分），命理界另有调候、病药等不同流派算法，结果仅供参考。
+      <b>说明：</b>年柱、月柱以“立春”“节”交接为界（非农历正月初一），符合传统命理排法；节气时刻按天文算法实时计算，精度约在分钟级——若生辰恰好落在交节前后十几分钟内，建议核对准确交节时刻。日柱按公历连续干支推算；子时固定以23:00为日界，23:00-23:59 出生按次日的日柱、时柱起算。十神以日干（日主）为基准，分别标注年干、月干、时干，以及四柱地支中所藏天干（本气/中气/余气）；日柱本身标"日主"，不参与自比。旺衰用神采用简化扶抑法（月令加权+通根计分），命理界另有调候、病药等不同流派算法，结果仅供参考。大运起运时间按传统"三天折一岁"口诀、结合精确节气时刻换算；顺排逆排按年干阴阳与性别判定；流年干支按公历年份直接推算。每步大运的冲/合仅对照命盘四支做基础判断，未纳入更复杂的三合、三会等关系。
     </div>
   </div>
 
@@ -452,50 +546,106 @@ function tenGodOf(dayGanIdx, targetGanIdx){
 }
 
 /* ============================================================
-   第一层：十神释义（喜神/忌神 两套表述，按身强身弱自动选用）
+   第一层：十神释义（喜神/忌神 两套表述，且按四柱对应的人生阶段
+   分别用不同措辞——年柱讲性格底色/家庭，月柱才讲事业职场，
+   日柱讲婚姻，时柱讲子女/晚年，避免把"跟领导起冲突"这种成年
+   职场语境套到童年头上）
    ============================================================ */
-const SHISHEN_DUAL = {
-  '比肩':{
-    pos:'自立自强，遇事有底气不轻易服输；身边多同辈相助，靠自己打拼也能站稳脚跟；重情重义，愿意为朋友两肋插刀。',
-    neg:'主观固执，不轻易听劝，容易与人争执较劲；破财漏财，钱财容易被平辈朋友分薄或合伙拖累；六亲缘分偏淡，凡事习惯自己扛。'
+const STAGE_SHISHEN_TEXT = {
+  '年柱':{
+    '比肩':{pos:'从小性格独立，不爱依赖大人，早早就有主见；跟兄弟姐妹、玩伴相处融洽，懂得分享也懂得为自己争取。',
+            neg:'从小主观倔强，不容易听劝，跟兄弟姐妹容易争抢资源、争宠；有心事习惯自己扛，不太主动向父母求助。'},
+    '劫财':{pos:'从小胆子大、有冲劲，敢闯敢试；朋友玩伴多，人缘不错，遇到困难总有人愿意帮一把。',
+            neg:'从小容易和同学、兄弟姐妹争抢东西起冲突，也容易因为讲义气帮人而吃亏（比如东西借出去要不回来）。'},
+    '食神':{pos:'从小性格温和讨喜，胃口好睡得香，是个让人省心又招人喜欢的孩子；对吃的、玩的、艺术类的东西天生敏感。',
+            neg:'从小容易操心、想得多，看着乖但内心细腻敏感，容易因为一点小事就闷闷不乐或睡不安稳。'},
+    '伤官':{pos:'从小脑子灵活、鬼点子多，好奇心重，不喜欢被死板管教，容易在某项才艺或兴趣上早早展现天赋。',
+            neg:'从小比较叛逆倔强，不太服管教，容易跟老师家长顶嘴对着干，情绪起伏也比较大。'},
+    '正财':{pos:'从小比较懂事，知道东西来之不易，不乱花钱，家教也偏向踏实稳重。',
+            neg:'从小容易被物质、零花钱这类事影响情绪，也可能因为家里经济状况而操心，比同龄人更早学会"算计"。'},
+    '偏财':{pos:'从小机灵讨喜，人缘好，容易得到长辈额外的疼爱和"意外惊喜"（红包零食礼物之类）。',
+            neg:'从小花钱大手大脚，喜欢的东西说要就要，也容易被新奇玩意儿分散注意力。'},
+    '正官':{pos:'从小比较守规矩、懂礼貌，在学校是让老师省心的类型，责任心早早显现。',
+            neg:'从小容易被管得比较严，规矩多、约束感强，性格上偏拘谨，不太敢表达真实想法。'},
+    '七杀':{pos:'从小胆子大、不怕生，遇到挑战敢往前冲，是同龄人里比较有冲劲和主见的类型。',
+            neg:'从小压力偏大（可能来自家庭管教严格或自我要求高），性子急、容易跟人对着干，也容易调皮闯祸。'},
+    '偏印':{pos:'从小心思细腻、爱观察爱琢磨，可能不太合群但很有自己的小世界，对某些冷门兴趣容易一头扎进去。',
+            neg:'从小比较孤僻内向，不太会主动表达情感需求，容易让父母觉得"猜不透在想什么"。'},
+    '正印':{pos:'从小被照顾得很好，长辈疼爱有加，性格偏温和听话，学习上容易得到帮助和资源。',
+            neg:'从小可能被保护、照顾得有点过度，独立能力发展偏慢，遇事习惯依赖大人。'}
   },
-  '劫财':{
-    pos:'有闯劲有魄力，关键时刻能孤注一掷搏一把；人脉广，朋友多能互相扶持，遇急难有人搭手。',
-    neg:'破财较重，容易因朋友、合伙人拖累而破财；争强好胜，容易招惹是非口舌；感情上桃花杂乱，婚姻易受第三者影响。'
+  '月柱':{
+    '比肩':{pos:'自立自强，遇事有底气不轻易服输；身边多同辈朋友相助，靠自己打拼也能站稳脚跟；重情重义。',
+            neg:'主观固执，不轻易听劝，容易跟同事朋友争执较劲；破财漏财，钱财容易被平辈朋友分薄或合伙拖累。'},
+    '劫财':{pos:'有闯劲有魄力，关键时刻能孤注一掷搏一把；人脉广，朋友多能互相扶持，遇急难有人搭手。',
+            neg:'破财较重，容易因朋友、合伙人拖累而破财；争强好胜，容易招惹是非口舌。'},
+    '食神':{pos:'心思细腻温和，审美和表达能力强，适合文艺、策划、美食相关领域；性格乐观，懂得享受生活。',
+            neg:'过度耗泄精力，容易想太多、睡眠体力透支；理想化不擅算计，赚钱辛苦却总是不温不火。'},
+    '伤官':{pos:'才华横溢，脑洞大有创意，适合技术、设计、自由职业等靠才华吃饭的路子；敢想敢做。',
+            neg:'叛逆心强，容易与权威、领导起冲突，职场不易久留；情绪敏感易走极端，遇压力容易钻牛角尖。'},
+    '正财':{pos:'踏实务实，工作勤恳，收入稳定细水长流；重视责任，会过日子懂得积累。',
+            neg:'过于看重物质和金钱得失，容易变得斤斤计较；为财奔波劳碌，压力大却难有大突破。'},
+    '偏财':{pos:'有商业头脑，擅长交际和把握机会，容易得意外之财；人缘广、豁达大方，适合经商投资。',
+            neg:'容易见钱眼开，投机心重，破财风险也随之增加；感情上容易见异思迁，桃花多而不专。'},
+    '正官':{pos:'自律守规矩，做事讲原则有分寸，适合体制内、管理类工作；名誉责任感强，容易获得认可。',
+            neg:'压力大、束缚感强，容易觉得处处受限不自由；过分在意别人看法，活得拘谨。'},
+    '七杀':{pos:'魄力十足，抗压能力强，适合竞争激烈或需要决断力的领域；有领导才能，关键时刻敢拼敢闯。',
+            neg:'压力山大，容易焦虑紧张，身体上也容易亮红灯；性格强硬冲动，容易与人对抗树敌。'},
+    '偏印':{pos:'直觉敏锐，善于钻研偏门或专业技能，适合技术、玄学、医术等领域；独立思考能力强。',
+            neg:'性格孤僻内向，不擅表达情感，容易钻牛角尖；多疑敏感，人际关系容易疏离。'},
+    '正印':{pos:'心地善良包容，重视传统和学问，容易得长辈贵人扶持庇护；学习能力强，适合学术教育。',
+            neg:'过度依赖他人，缺乏独立行动力，容易懒散拖延；想法保守传统，不容易接受新事物。'}
   },
-  '食神':{
-    pos:'心思细腻温和，审美和表达能力强，适合文艺、策划、美食相关领域；性格乐观，懂得享受生活，福气厚重，子女缘佳。',
-    neg:'过度耗泄精力，容易操心命、想太多，睡眠体力容易透支；理想化不擅算计，赚钱辛苦却总是不温不火；女命食神过旺克官，感情上容易对伴侣过于挑剔，婚姻推迟或波折。'
+  '日柱':{
+    '比肩':{pos:'婚姻里保有自己的独立空间和主见，不轻易被伴侣左右，两人相处更像并肩的伙伴。',
+            neg:'婚姻里容易固执己见，不太会退让妥协，跟伴侣容易在家庭话语权、资源分配上较劲。'},
+    '劫财':{pos:'婚姻中愿意为家庭拼一把，遇到经济压力敢想办法闯出路，两人一起扛事。',
+            neg:'容易因朋友、外部关系影响婚姻，钱财上也容易因讲义气而让家庭吃亏；要留意桃花纷扰。'},
+    '食神':{pos:'婚姻生活温馨，懂得经营情趣，两人相处轻松自在，子女缘也不错。',
+            neg:'对伴侣要求偏高，容易挑剔对方细节，感情上容易因为想太多而生出不必要的猜忌。'},
+    '伤官':{pos:'婚姻中懂得表达、有情趣，两人相处不会死气沉沉，伴侣也欣赏这份灵气。',
+            neg:'婚姻里说话容易不留情面、直来直去，容易因言语冲突伤感情，也要留意跟双方长辈关系紧张。'},
+    '正财':{pos:'婚姻务实稳固，会持家过日子，夫妻感情靠柴米油盐的踏实来维系。',
+            neg:'容易把婚姻过成"过日子算账"，为了钱财琐事跟伴侣拌嘴，感情容易被现实压力磨损。'},
+    '偏财':{pos:'婚姻中财运不错，两人一起打拼容易越过越宽裕，社交生活也丰富。',
+            neg:'婚姻里要留意桃花纠纷和财务上的投机冲动，容易因为对外交际过多而冷落家庭。'},
+    '正官':{pos:'婚姻稳定负责，伴侣靠谱有担当，容易遇到条件不错、顾家的对象。',
+            neg:'婚姻里责任和压力偏重，容易被家庭角色、外界期待束缚，感情上少了点轻松感。'},
+    '七杀':{pos:'婚姻中能扛事、有担当，遇到大风大浪两人能一起扛过去，感情反而更牢固。',
+            neg:'婚姻里压迫感强，容易遇到强势或不稳定的对象，相处中火药味偏重。'},
+    '偏印':{pos:'婚姻中懂得给彼此空间，不粘腻但有默契，各自也能保有自己的兴趣世界。',
+            neg:'婚姻里容易缺乏沟通、把心事都闷在心里，容易造成两人之间的疏离感。'},
+    '正印':{pos:'婚姻里能得到伴侣及双方家庭的照顾扶持，家庭氛围温暖，生活比较安稳。',
+            neg:'婚姻里容易过度依赖伴侣或原生家庭，独立处理问题的能力偏弱。'}
   },
-  '伤官':{
-    pos:'才华横溢，脑洞大有创意，适合技术、设计、自由职业等靠才华吃饭的路子；敢想敢做，不愿受传统束缚，容易在新兴领域出头。',
-    neg:'叛逆心强，容易与权威、领导起冲突，职场不易久留；情绪敏感易走极端，遇压力容易钻牛角尖；伤官克官，感情婚姻多反复，需要更多耐心经营。'
-  },
-  '正财':{
-    pos:'踏实务实，工作勤恳，收入稳定细水长流；重视家庭责任，会过日子懂得积累；男命正财旺，婚姻较稳固顾家。',
-    neg:'过于看重物质和金钱得失，容易变得斤斤计较；为财奔波劳碌，压力大却难有大突破；男命正财过旺易被钱财、感情琐事分心，忽略自身成长。'
-  },
-  '偏财':{
-    pos:'有商业头脑，擅长交际和把握机会，容易得意外之财；人缘广、豁达大方，适合经商或投资相关行业。',
-    neg:'容易见钱眼开，投机心重，破财风险也随之增加；感情上容易见异思迁，桃花多而不专；花钱大手大脚，难以积蓄。'
-  },
-  '正官':{
-    pos:'自律守规矩，做事讲原则有分寸，适合体制内、管理类工作；名誉责任感强，容易获得社会认可和地位；女命正官为夫星，感情婚姻较稳定顺遂。',
-    neg:'压力大、束缚感强，容易觉得处处受限不自由；过分在意别人看法，活得拘谨；女命正官过多，感情选择纠结，容易面临多重压力或责任。'
-  },
-  '七杀':{
-    pos:'魄力十足，抗压能力强，适合竞争激烈或需要决断力的领域；有领导才能，关键时刻敢拼敢闯。',
-    neg:'压力山大，容易焦虑紧张，身体上也容易亮红灯；性格强硬冲动，容易与人对抗或树敌；感情上压迫感强，容易遇到强势或不稳定的对象。'
-  },
-  '正印':{
-    pos:'心地善良包容，重视传统和学问，容易得长辈贵人扶持庇护；学习能力强，适合做学术、教育相关工作；一生福厚，晚年安稳。',
-    neg:'过度依赖他人，缺乏独立行动力，容易懒散拖延；想法保守传统，不容易接受新事物；容易溺爱或被溺爱，界限感模糊。'
-  },
-  '偏印':{
-    pos:'直觉敏锐，善于钻研偏门或专业技能，适合技术、玄学、医术等领域；独立思考能力强，不轻易随大流。',
-    neg:'性格孤僻内向，不擅表达情感，容易钻牛角尖；多疑敏感，人际关系容易疏离；女命偏印过旺，不利子女缘，或与母系亲缘较淡。'
+  '时柱':{
+    '比肩':{pos:'晚年依然精神独立，不依赖子女也能把日子过好，身边多老友相伴。',
+            neg:'晚年容易固执己见，不容易听子女晚辈的劝，人际上也可能因为倔强跟人疏远。'},
+    '劫财':{pos:'晚年依然有闯劲，不服老，愿意尝试新事物，朋友圈子活跃。',
+            neg:'晚年财务上要防因义气、投资冲动而破财，也要留意被熟人朋友拖累。'},
+    '食神':{pos:'晚年生活有品质、懂享受，儿孙满堂福气厚，日子过得有滋有味。',
+            neg:'晚年容易因为想太多而失眠劳神，子女缘上也可能有些操心的地方。'},
+    '伤官':{pos:'晚年思维依然活跃，创意和才华能持续发光，退休后也闲不住，喜欢捣鼓新东西。',
+            neg:'晚年容易因为直言直语得罪晚辈或身边人，脾气上要多收敛。'},
+    '正财':{pos:'晚年经济基础扎实，衣食无忧，儿女也孝顺懂事。',
+            neg:'晚年容易为钱财琐事操心，也可能因为太节省而委屈自己。'},
+    '偏财':{pos:'晚年人脉广、生活丰富多彩，偶尔还有意外之财，退休生活不寂寞。',
+            neg:'晚年要防投资冲动、被骗财，也要留意感情上不必要的桃花麻烦。'},
+    '正官':{pos:'晚年依然有社会地位和存在感，受人尊重，生活也有秩序感、不慌乱。',
+            neg:'晚年容易被过多的责任、家庭事务缠身，难得清闲。'},
+    '七杀':{pos:'晚年依然精神头足，不服老，遇事仍有魄力做决定，家里说话有分量。',
+            neg:'晚年要留意身体上的压力信号，也容易因为脾气强硬跟子女晚辈起摩擦。'},
+    '偏印':{pos:'晚年生活有自己的钻研方向和兴趣寄托，精神世界丰富，不觉得孤单。',
+            neg:'晚年容易孤僻少语，跟子女晚辈的沟通偏少，要留意别把自己封闭起来。'},
+    '正印':{pos:'晚年被子女照顾得很好，生活安稳，也容易享受天伦之乐。',
+            neg:'晚年容易过度依赖子女，不愿放手让自己保持独立，也可能因此跟晚辈产生摩擦。'}
   }
 };
+function getShishenText(pillarName, sg, tag){
+  const t = STAGE_SHISHEN_TEXT[pillarName] && STAGE_SHISHEN_TEXT[pillarName][sg];
+  if(!t) return '';
+  return tag==='喜' ? t.pos : t.neg;
+}
 
 /* ============================================================
    第三层：十神组合关系（简化版，仅按"整盘是否同时出现"判断，
@@ -832,6 +982,69 @@ function computeBazi(y,m,d,hour,min){
 }
 
 /* ============================================================
+   大运：起运年龄 + 顺逆排序列
+   ============================================================ */
+// 地支六冲：i 与 (i+6)%12 相冲；地支六合表
+function isChong(z1,z2){ return (z1+6)%12 === z2; }
+const ZHI_LIU_HE = {0:1,1:0, 2:11,11:2, 3:10,10:3, 4:9,9:4, 5:8,8:5, 6:7,7:6};
+function isLiuHe(z1,z2){ return ZHI_LIU_HE[z1]===z2; }
+
+// 用牛顿迭代法精确定位太阳视黄经到达 targetDeg 的儒略日（用于精确定位起运的节气时刻）
+function findJieqiJD(targetDeg, approxJD){
+  let jd = approxJD;
+  for(let i=0;i<8;i++){
+    const cur = sunApparentLongitude(jd);
+    let diff = targetDeg - cur;
+    diff = ((diff+180)%360+360)%360-180; // 归一化到 [-180,180)
+    jd += diff/0.9856; // 太阳日均运行约0.9856度
+  }
+  return jd;
+}
+
+// 将“天数差”按传统口诀换算成 起运的 年/月/日：三天一岁，一天四个月，不足部分按30天一月折算
+function daysToQiyunAge(dayDiff){
+  const totalMonths = dayDiff/3*12;
+  let years = Math.floor(totalMonths/12);
+  let remMonths = totalMonths - years*12;
+  let months = Math.floor(remMonths);
+  let days = Math.round((remMonths-months)*30);
+  if(days>=30){ days-=30; months+=1; }
+  if(months>=12){ months-=12; years+=1; }
+  return {years, months, days};
+}
+
+// r: computeBazi() 的返回值；y,m,d,hour,min: 出生公历时刻；isMale: 是否男命
+function computeDaYun(r, y, m, d, hour, min, isMale){
+  const jdBirth = toJD_UT(y,m,d,hour,min);
+  const yearGanIsYang = (r.year.gan % 2 === 0);
+  const forward = (yearGanIsYang === isMale); // 阳男阴女顺排，阴男阳女逆排
+
+  const nextDeg = norm360(315 + 30*(r.bracket+1));
+  const prevDeg = norm360(315 + 30*r.bracket);
+  const targetJD = forward ? findJieqiJD(nextDeg, jdBirth) : findJieqiJD(prevDeg, jdBirth);
+
+  const dayDiff = Math.abs(targetJD - jdBirth);
+  const qy = daysToQiyunAge(dayDiff);
+
+  const startDate = new Date(Date.UTC(y, m-1, d));
+  startDate.setUTCFullYear(startDate.getUTCFullYear()+qy.years);
+  startDate.setUTCMonth(startDate.getUTCMonth()+qy.months);
+  startDate.setUTCDate(startDate.getUTCDate()+qy.days);
+
+  const periods = [];
+  for(let i=0;i<9;i++){
+    const idx = ((r.month.idx + (forward?1:-1)*(i+1)) % 60 + 60) % 60;
+    periods.push({
+      idx, gan: idx%10, zhi: idx%12,
+      startAgeYears: qy.years + i*10,
+      startYear: startDate.getUTCFullYear() + i*10
+    });
+  }
+
+  return {forward, qiyunYears:qy.years, qiyunMonths:qy.months, qiyunDays:qy.days, startYear:startDate.getUTCFullYear(), periods};
+}
+
+/* ============================================================
    UI 绑定：年月日时分下拉选择
    ============================================================ */
 const SHICHEN_NAMES = ['子','子','丑','丑','寅','寅','卯','卯','辰','辰','巳','巳','午','午','未','未','申','申','酉','酉','戌','戌','亥','亥'];
@@ -883,6 +1096,18 @@ function updateShichenHint(){
 }
 selH.onchange = updateShichenHint;
 updateShichenHint();
+
+let isMale = true;
+document.getElementById('genMale').onclick = function(){
+  isMale = true;
+  this.classList.add('active');
+  document.getElementById('genFemale').classList.remove('active');
+};
+document.getElementById('genFemale').onclick = function(){
+  isMale = false;
+  this.classList.add('active');
+  document.getElementById('genMale').classList.remove('active');
+};
 
 function renderPillar(container, labelZh, p, dayGanIdx, isDay){
   const div = document.createElement('div');
@@ -945,6 +1170,65 @@ function detectCombos(occ){
   return COMBO_RULES.filter(rule=> rule.need.every(group=> group.some(g=>occ[g])));
 }
 
+const STAGE_TITLES = {
+  '年柱':{title:'童年', sub:'祖辈 · 原生家庭 · 早年性格底色（约0–18岁）'},
+  '月柱':{title:'青年', sub:'事业人际 · 内心性格（约18–36岁）'},
+  '日柱':{title:'中年', sub:'日支主婚姻 · 内心安全感（日主为自身，不参与喜忌自比）'},
+  '时柱':{title:'晚年', sub:'子女 · 外在才华 · 晚年归宿（约36岁后）'}
+};
+
+function buildStageNarrative(pillarItem, xiCamp){
+  const items = [];
+  if(pillarItem.stemShishen && pillarItem.stemShishen!=='日主') items.push(pillarItem.stemShishen);
+  pillarItem.hiddenList.forEach(h=> items.push(h.shishen));
+
+  const seen = new Set();
+  const uniqueGods = [];
+  let xiCount=0, jiCount=0;
+  items.forEach(sg=>{
+    const tag = SHISHEN_CAMP[sg]===xiCamp ? '喜' : '忌';
+    if(tag==='喜') xiCount++; else jiCount++;
+    if(!seen.has(sg)){ seen.add(sg); uniqueGods.push({sg,tag}); }
+  });
+
+  const sentences = uniqueGods.map(({sg,tag})=>{
+    const text = getShishenText(pillarItem.name, sg, tag);
+    return `<b>${sg}</b>（${tag}）：${text}`;
+  });
+
+  let tone;
+  if(items.length===0){
+    tone = '这个位置没有十神落入（藏干为空的情况极少见），暂无对应解读。';
+  } else if(xiCount>jiCount){
+    tone = '整体来看，这个阶段是相对被命盘照顾、容易借上力的阶段。';
+  } else if(jiCount>xiCount){
+    tone = '整体来看，这个阶段消耗和压力更明显一些，需要更多主动调整心态，或借助用神对应的方位、行业来缓冲。';
+  } else {
+    tone = '这个阶段喜忌参半，具体走向更多取决于当时行运（大运流年）是否助力，不宜一概而论。';
+  }
+  return {sentences, tone};
+}
+
+function renderStageNarrative(r, a){
+  const xiCamp = a.bangScore >= a.haoScore ? '耗身' : '帮身';
+  const pillars = collectPillarBreakdown(r);
+  const body = document.getElementById('stageBody');
+  body.innerHTML = '';
+  pillars.forEach(p=>{
+    const st = STAGE_TITLES[p.name];
+    const narrative = buildStageNarrative(p, xiCamp);
+    const div = document.createElement('div');
+    div.className='stage-block';
+    div.innerHTML = `
+      <div class="stage-title">${st.title}</div>
+      <div class="stage-sub">${st.sub}</div>
+      ${narrative.sentences.map(s=>`<div class="stage-sentence">${s}</div>`).join('')}
+      <div class="stage-tone">${narrative.tone}</div>
+    `;
+    body.appendChild(div);
+  });
+}
+
 function renderMeanings(r, a){
   const occ = collectShishenOccurrences(r);
   const xiCamp = a.bangScore >= a.haoScore ? '耗身' : '帮身'; // 喜神所在阵营
@@ -964,13 +1248,12 @@ function renderMeanings(r, a){
     if(!sg || sg==='日主') return null;
     return SHISHEN_CAMP[sg]===xiCamp ? '喜' : '忌';
   }
-  function lineHtml(charLabel, stemChar, sg){
+  function lineHtml(charLabel, stemChar, sg, pillarName){
     if(sg==='日主'){
       return `<div class="sline"><span class="sc">${stemChar}</span><span class="sname">日主</span></div><div class="stext">命主自身，不参与喜忌自比。</div>`;
     }
     const xj = xjTag(sg);
-    const d = SHISHEN_DUAL[sg];
-    let text = xj==='喜' ? d.pos : d.neg;
+    let text = getShishenText(pillarName, sg, xj);
     if(occ[sg]>=3) text += `（此十神在盘中出现${occ[sg]}次，作用被放大）`;
     return `<div class="sline"><span class="sc">${stemChar}</span><span class="sname">${sg}</span><span class="xj ${xj==='喜'?'xi':'ji'}">${xj}</span></div><div class="stext">${text}</div>`;
   }
@@ -980,9 +1263,9 @@ function renderMeanings(r, a){
     const div = document.createElement('div');
     div.className='pillar-block';
     let html = `<div class="pb-title">${p.name}<span class="pb-stage">${p.stage}</span></div>`;
-    html += lineHtml(p.stemLabel, p.stemChar, p.stemShishen);
+    html += lineHtml(p.stemLabel, p.stemChar, p.stemShishen, p.name);
     p.hiddenList.forEach(h=>{
-      html += lineHtml('藏干', h.stem, h.shishen);
+      html += lineHtml('藏干', h.stem, h.shishen, p.name);
     });
     div.innerHTML = html;
     body.appendChild(div);
@@ -1037,6 +1320,66 @@ function renderStrength(r, a){
   if(link){ link.onclick = ()=> openYongModal(link.dataset.elem); }
 }
 
+function chongHeNotes(zhi, r){
+  const branches = [['年',r.year.zhi],['月',r.month.zhi],['日',r.day.zhi],['时',r.hour.zhi]];
+  const notes=[];
+  branches.forEach(([label,z])=>{
+    if(isChong(zhi,z)) notes.push(`冲${label}支${ZHI[z]}`);
+    if(isLiuHe(zhi,z)) notes.push(`合${label}支${ZHI[z]}`);
+  });
+  return notes;
+}
+
+function renderDaYun(r, a, dayun){
+  const dayGanIdx = r.day.gan;
+  const xiCamp = a.bangScore >= a.haoScore ? '耗身' : '帮身';
+  const container = document.getElementById('dayunBody');
+  container.innerHTML = '';
+
+  const header = document.createElement('div');
+  header.className='dayun-header';
+  header.innerHTML = `${dayun.forward?'顺排':'逆排'} · 起运 <b>${dayun.qiyunYears}岁${dayun.qiyunMonths}个月${dayun.qiyunDays}天</b>（约${dayun.startYear}年）`;
+  container.appendChild(header);
+
+  dayun.periods.forEach(p=>{
+    const sg = tenGodOf(dayGanIdx, p.gan);
+    const xj = SHISHEN_CAMP[sg]===xiCamp ? '喜' : '忌';
+    const notes = chongHeNotes(p.zhi, r);
+    const endAge = p.startAgeYears+9, endYear = p.startYear+9;
+
+    const row = document.createElement('div');
+    row.className='dayun-row';
+    row.innerHTML = `
+      <div class="dy-age">${p.startAgeYears}-${endAge}岁<div class="dy-year">${p.startYear}-${endYear}</div></div>
+      <div class="dy-gz">${GAN[p.gan]}${ZHI[p.zhi]}</div>
+      <div class="dy-tags"><span class="tag-sg">${sg}</span><span class="xj ${xj==='喜'?'xi':'ji'}">${xj}</span>${notes.length?`<div class="dy-notes">${notes.join('，')}</div>`:''}</div>
+      <div class="dy-arrow">›</div>
+    `;
+
+    const panel = document.createElement('div');
+    panel.className='liunian-panel';
+    panel.style.display='none';
+    const lnItems=[];
+    for(let k=0;k<10;k++){
+      const Y = p.startYear+k;
+      const lgan = ((Y-4)%10+10)%10, lzhi = ((Y-4)%12+12)%12;
+      const lsg = tenGodOf(dayGanIdx, lgan);
+      const lxj = SHISHEN_CAMP[lsg]===xiCamp ? '喜' : '忌';
+      lnItems.push(`<div class="ln-item"><div class="ln-year">${Y}</div><div class="ln-gz">${GAN[lgan]}${ZHI[lzhi]}</div><div class="ln-tag ${lxj==='喜'?'xi':'ji'}">${lsg}·${lxj}</div></div>`);
+    }
+    panel.innerHTML = lnItems.join('');
+
+    row.onclick = ()=>{
+      const isOpen = panel.style.display!=='none';
+      panel.style.display = isOpen ? 'none' : 'grid';
+      row.classList.toggle('open', !isOpen);
+    };
+
+    container.appendChild(row);
+    container.appendChild(panel);
+  });
+}
+
 document.getElementById('goBtn').onclick = function(){
   const y=Number(selY.value), m=Number(selM.value), d=Number(selD.value);
   const hh=Number(selH.value), mi=Number(selMin.value);
@@ -1053,7 +1396,11 @@ document.getElementById('goBtn').onclick = function(){
 
   const a = analyzeStrength(r);
   renderStrength(r, a);
+  renderStageNarrative(r, a);
   renderMeanings(r, a);
+
+  const dayun = computeDaYun(r, y, m, d, hh, mi, isMale);
+  renderDaYun(r, a, dayun);
 
   const pad=n=>String(n).padStart(2,'0');
   const lunar = solarToLunar(y,m,d);
