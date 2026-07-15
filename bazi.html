@@ -451,6 +451,30 @@
       </div>
     </div>
 
+    <div class="field">
+      <label>已知情况（可选，用于避免解读跟事实矛盾）</label>
+      <div class="ymd">
+        <select id="selMarriage">
+          <option value="unknown">婚姻未知</option>
+          <option value="single">未婚</option>
+          <option value="married">已婚</option>
+          <option value="divorced">离异</option>
+          <option value="widowed">丧偶</option>
+        </select>
+        <select id="selChildren">
+          <option value="unknown">子女未知</option>
+          <option value="no">无子女</option>
+          <option value="yes">有子女</option>
+        </select>
+        <select id="selParents">
+          <option value="unknown">父母未知</option>
+          <option value="both_alive">双亲健在</option>
+          <option value="one_deceased">一方过世</option>
+          <option value="both_deceased">均已过世</option>
+        </select>
+      </div>
+    </div>
+
     <button class="go" id="goBtn">起　盘</button>
   </div>
 
@@ -649,6 +673,27 @@ function getShishenText(pillarName, sg, tag){
   const t = STAGE_SHISHEN_TEXT[pillarName] && STAGE_SHISHEN_TEXT[pillarName][sg];
   if(!t) return '';
   return tag==='喜' ? t.pos : t.neg;
+}
+
+/* ============================================================
+   已知情况批注：根据用户手动标注的婚姻/子女/父母状况，
+   给涉及对应六亲的文字追加一句提示，而不是删掉——把象征
+   本身和具体载体（是否真有子女等）分开，避免解读跟事实矛盾。
+   ============================================================ */
+const KNOWN_FACT_NOTES = {
+  children_no: '（你已标注没有子女——这里"子女"相关的描述，可以理解为晚辈、学生这类角色，或长期陪伴关系的投射，不一定对应亲生子女。）',
+  marriage_single: '（你已标注目前未婚——这里"婚姻/伴侣"相关的描述，可以理解为亲密关系或重要的情感连接，不一定对应正式婚姻。）',
+  marriage_ended: '（你已标注婚姻已结束（离异/丧偶）——这里"婚姻"相关的描述，更多反映的是感情关系中的性格倾向，不代表当下婚姻状态。）',
+  parents_deceased: '（你已标注父母已经过世——这里涉及"父母/长辈"的描述，更多反映早年从原生家庭获得的性格烙印，不代表现状。）'
+};
+function annotateText(text, facts){
+  if(!facts) return text;
+  let note = '';
+  if(facts.children==='no' && /子女|儿孙|子孙/.test(text)) note += KNOWN_FACT_NOTES.children_no;
+  if(facts.marriage==='single' && /婚姻|伴侣|配偶|夫妻/.test(text)) note += KNOWN_FACT_NOTES.marriage_single;
+  if((facts.marriage==='divorced'||facts.marriage==='widowed') && /婚姻|伴侣|配偶|夫妻/.test(text)) note += KNOWN_FACT_NOTES.marriage_ended;
+  if((facts.parents==='one_deceased'||facts.parents==='both_deceased') && /父母|长辈/.test(text)) note += KNOWN_FACT_NOTES.parents_deceased;
+  return text + note;
 }
 
 /* ============================================================
@@ -864,9 +909,9 @@ function ageToFlowingBracket(age){
   return '晚年';
 }
 
-function openShishenModal(sg, xj, age, contextLabel){
+function openShishenModal(sg, xj, age, contextLabel, facts){
   const bracket = ageToFlowingBracket(age);
-  const text = getFlowingShishenText(bracket, sg, xj);
+  const text = annotateText(getFlowingShishenText(bracket, sg, xj), facts);
   document.getElementById('modalTitle').textContent = `${sg}（${xj}）`;
   document.getElementById('modalBody').innerHTML = `
     <div class="modal-sec"><div class="modal-h">${contextLabel} · 约${age}岁 · ${bracket}</div><div class="modal-p">${text}</div></div>
@@ -1257,7 +1302,7 @@ const STAGE_TITLES = {
   '时柱':{title:'晚年', sub:'子女 · 外在才华 · 晚年归宿（约36岁后）'}
 };
 
-function buildStageNarrative(pillarItem, xiCamp){
+function buildStageNarrative(pillarItem, xiCamp, facts){
   const items = [];
   if(pillarItem.stemShishen && pillarItem.stemShishen!=='日主') items.push(pillarItem.stemShishen);
   pillarItem.hiddenList.forEach(h=> items.push(h.shishen));
@@ -1272,7 +1317,7 @@ function buildStageNarrative(pillarItem, xiCamp){
   });
 
   const sentences = uniqueGods.map(({sg,tag})=>{
-    const text = getShishenText(pillarItem.name, sg, tag);
+    const text = annotateText(getShishenText(pillarItem.name, sg, tag), facts);
     return `<b>${sg}</b>（${tag}）：${text}`;
   });
 
@@ -1289,14 +1334,14 @@ function buildStageNarrative(pillarItem, xiCamp){
   return {sentences, tone};
 }
 
-function renderStageNarrative(r, a){
+function renderStageNarrative(r, a, facts){
   const xiCamp = a.bangScore >= a.haoScore ? '耗身' : '帮身';
   const pillars = collectPillarBreakdown(r);
   const body = document.getElementById('stageBody');
   body.innerHTML = '';
   pillars.forEach(p=>{
     const st = STAGE_TITLES[p.name];
-    const narrative = buildStageNarrative(p, xiCamp);
+    const narrative = buildStageNarrative(p, xiCamp, facts);
     const div = document.createElement('div');
     div.className='stage-block';
     div.innerHTML = `
@@ -1309,7 +1354,7 @@ function renderStageNarrative(r, a){
   });
 }
 
-function renderMeanings(r, a){
+function renderMeanings(r, a, facts){
   const occ = collectShishenOccurrences(r);
   const xiCamp = a.bangScore >= a.haoScore ? '耗身' : '帮身'; // 喜神所在阵营
   const xiGods = xiCamp==='帮身' ? ['比肩','劫财','正印','偏印'] : ['食神','伤官','正财','偏财','正官','七杀'];
@@ -1333,7 +1378,7 @@ function renderMeanings(r, a){
       return `<div class="sline"><span class="sc">${stemChar}</span><span class="sname">日主</span></div><div class="stext">命主自身，不参与喜忌自比。</div>`;
     }
     const xj = xjTag(sg);
-    let text = getShishenText(pillarName, sg, xj);
+    let text = annotateText(getShishenText(pillarName, sg, xj), facts);
     if(occ[sg]>=3) text += `（此十神在盘中出现${occ[sg]}次，作用被放大）`;
     return `<div class="sline"><span class="sc">${stemChar}</span><span class="sname">${sg}</span><span class="xj ${xj==='喜'?'xi':'ji'}">${xj}</span></div><div class="stext">${text}</div>`;
   }
@@ -1410,7 +1455,7 @@ function chongHeNotes(zhi, r){
   return notes;
 }
 
-function renderDaYun(r, a, dayun){
+function renderDaYun(r, a, dayun, facts){
   const dayGanIdx = r.day.gan;
   const xiCamp = a.bangScore >= a.haoScore ? '耗身' : '帮身';
   const container = document.getElementById('dayunBody');
@@ -1439,7 +1484,7 @@ function renderDaYun(r, a, dayun){
     const dyTagEl = row.querySelector('.sg-click');
     dyTagEl.onclick = (e)=>{
       e.stopPropagation();
-      openShishenModal(sg, xj, midAge, `大运 ${p.startAgeYears}-${endAge}岁（${p.startYear}-${endYear}）`);
+      openShishenModal(sg, xj, midAge, `大运 ${p.startAgeYears}-${endAge}岁（${p.startYear}-${endYear}）`, facts);
     };
 
     const panel = document.createElement('div');
@@ -1456,7 +1501,7 @@ function renderDaYun(r, a, dayun){
       lnItem.innerHTML = `<div class="ln-year">${Y}</div><div class="ln-gz">${GAN[lgan]}${ZHI[lzhi]}</div><div class="ln-tag ${lxj==='喜'?'xi':'ji'}">${lsg}·${lxj}</div>`;
       lnItem.onclick = (e)=>{
         e.stopPropagation();
-        openShishenModal(lsg, lxj, lnAge, `流年 ${Y}年`);
+        openShishenModal(lsg, lxj, lnAge, `流年 ${Y}年`, facts);
       };
       panel.appendChild(lnItem);
     }
@@ -1476,6 +1521,12 @@ document.getElementById('goBtn').onclick = function(){
   const y=Number(selY.value), m=Number(selM.value), d=Number(selD.value);
   const hh=Number(selH.value), mi=Number(selMin.value);
 
+  const facts = {
+    marriage: document.getElementById('selMarriage').value,
+    children: document.getElementById('selChildren').value,
+    parents: document.getElementById('selParents').value
+  };
+
   const r = computeBazi(y,m,d,hh,mi);
 
   const pillarsEl = document.getElementById('pillars');
@@ -1488,11 +1539,11 @@ document.getElementById('goBtn').onclick = function(){
 
   const a = analyzeStrength(r);
   renderStrength(r, a);
-  renderStageNarrative(r, a);
-  renderMeanings(r, a);
+  renderStageNarrative(r, a, facts);
+  renderMeanings(r, a, facts);
 
   const dayun = computeDaYun(r, y, m, d, hh, mi, isMale);
-  renderDaYun(r, a, dayun);
+  renderDaYun(r, a, dayun, facts);
 
   const pad=n=>String(n).padStart(2,'0');
   const lunar = solarToLunar(y,m,d);
