@@ -2,11 +2,10 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>四柱排盘 · 纳音五行</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700;900&family=Noto+Sans+SC:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -151,8 +150,13 @@
   .pillar:last-child{border-right:none;}
   .pillar .label{
     font-size:10.5px;color:var(--text-ink-dim);
-    letter-spacing:.12em;margin-bottom:12px;
+    letter-spacing:.12em;margin-bottom:10px;
     font-weight:500;
+  }
+  .pillar .sg{
+    font-size:11px;color:var(--vermillion-dim);
+    font-weight:700;letter-spacing:.02em;
+    margin-bottom:6px;height:14px;
   }
   .pillar .gan{
     font-family:"Noto Serif SC",serif;font-weight:900;
@@ -162,7 +166,17 @@
   .pillar .zhi{
     font-family:"Noto Serif SC",serif;font-weight:900;
     font-size:34px;line-height:1.1;color:var(--text-ink);
-    margin-bottom:14px;
+    margin-bottom:10px;
+  }
+  .pillar .hidden{
+    margin-bottom:12px;min-height:16px;
+  }
+  .pillar .hidden-item{
+    font-size:10px;color:var(--text-ink-dim);line-height:1.7;
+    letter-spacing:.02em;
+  }
+  .pillar .hidden-item .hs-stem{
+    color:var(--text-ink);font-weight:700;margin-right:3px;
   }
   .pillar .wx{
     font-size:10px;color:var(--text-ink-dim);margin-top:-8px;margin-bottom:14px;
@@ -227,7 +241,7 @@
       <div class="pillars" id="pillars"></div>
     </div>
     <div class="footnote">
-      <b>说明：</b>年柱、月柱以“立春”“节”交接为界（非农历正月初一），符合传统命理排法；节气时刻按天文算法实时计算，精度约在分钟级——若生辰恰好落在交节前后十几分钟内，建议核对准确交节时刻。日柱按公历连续干支推算；子时固定以23:00为日界，23:00-23:59 出生按次日的日柱、时柱起算。
+      <b>说明：</b>年柱、月柱以“立春”“节”交接为界（非农历正月初一），符合传统命理排法；节气时刻按天文算法实时计算，精度约在分钟级——若生辰恰好落在交节前后十几分钟内，建议核对准确交节时刻。日柱按公历连续干支推算；子时固定以23:00为日界，23:00-23:59 出生按次日的日柱、时柱起算。十神以日干（日主）为基准，分别标注年干、月干、时干，以及四柱地支中所藏天干（本气/中气/余气）；日柱本身标"日主"，不参与自比。
     </div>
   </div>
 
@@ -253,6 +267,39 @@ function ganIndex(gz){return gz%10;}
 function zhiIndex(gz){return gz%12;}
 function ganzhiStr(gz){return GAN[ganIndex(gz)]+ZHI[zhiIndex(gz)];}
 function nayinOf(gz){return NAYIN_30[Math.floor(gz/2)];}
+
+/* ============================================================
+   地支藏干表 与 十神判定
+   ============================================================ */
+// 每个地支藏的天干（本气在前，中气、余气在后），索引对应 ZHI 数组
+const BRANCH_HIDDEN = [
+  [9],        // 子：癸
+  [5,9,7],    // 丑：己癸辛
+  [0,2,4],    // 寅：甲丙戊
+  [1],        // 卯：乙
+  [4,1,9],    // 辰：戊乙癸
+  [2,6,4],    // 巳：丙庚戊
+  [3,5],      // 午：丁己
+  [5,3,1],    // 未：己丁乙
+  [6,8,4],    // 申：庚壬戊
+  [7],        // 酉：辛
+  [4,7,3],    // 戌：戊辛丁
+  [8,0]       // 亥：壬甲
+];
+
+// 给定日干（日主）和任意一个天干，判定十神关系
+// 五行顺序：木0 火1 土2 金3 水4；天干索引 0-9 对应 甲乙丙丁戊己庚辛壬癸，每两个一组五行，偶数阳/奇数阴
+function tenGodOf(dayGanIdx, targetGanIdx){
+  const dayElem = Math.floor(dayGanIdx/2);
+  const targetElem = Math.floor(targetGanIdx/2);
+  const sameYY = (dayGanIdx%2) === (targetGanIdx%2);
+  if(dayElem === targetElem) return sameYY ? '比肩' : '劫财';
+  if((dayElem+1)%5 === targetElem) return sameYY ? '食神' : '伤官';
+  if((dayElem+2)%5 === targetElem) return sameYY ? '偏财' : '正财';
+  if((targetElem+2)%5 === dayElem) return sameYY ? '七杀' : '正官';
+  if((targetElem+1)%5 === dayElem) return sameYY ? '偏印' : '正印';
+  return '';
+}
 
 /* ============================================================
    农历转换（1900-2100）—— 表数据移植自公开算法库，已核对验证
@@ -493,13 +540,23 @@ function updateShichenHint(){
 selH.onchange = updateShichenHint;
 updateShichenHint();
 
-function renderPillar(container, labelZh, p){
+function renderPillar(container, labelZh, p, dayGanIdx, isDay){
   const div = document.createElement('div');
   div.className='pillar';
+
+  const sgLabel = isDay ? '日主' : tenGodOf(dayGanIdx, p.gan);
+
+  const hiddenHtml = BRANCH_HIDDEN[p.zhi].map(stemIdx=>{
+    const sg = tenGodOf(dayGanIdx, stemIdx);
+    return `<div class="hidden-item"><span class="hs-stem">${GAN[stemIdx]}</span>${sg}</div>`;
+  }).join('');
+
   div.innerHTML = `
     <div class="label">${labelZh}</div>
+    <div class="sg">${sgLabel}</div>
     <div class="gan">${GAN[p.gan]}</div>
     <div class="zhi">${ZHI[p.zhi]}</div>
+    <div class="hidden">${hiddenHtml}</div>
     <div class="divider"></div>
     <div class="nayin">${nayinOf(p.idx)}</div>
   `;
@@ -514,10 +571,11 @@ document.getElementById('goBtn').onclick = function(){
 
   const pillarsEl = document.getElementById('pillars');
   pillarsEl.innerHTML='';
-  renderPillar(pillarsEl,'年柱',r.year);
-  renderPillar(pillarsEl,'月柱',r.month);
-  renderPillar(pillarsEl,'日柱',r.day);
-  renderPillar(pillarsEl,'时柱',r.hour);
+  const dayGanIdx = r.day.gan;
+  renderPillar(pillarsEl,'年柱',r.year, dayGanIdx, false);
+  renderPillar(pillarsEl,'月柱',r.month, dayGanIdx, false);
+  renderPillar(pillarsEl,'日柱',r.day, dayGanIdx, true);
+  renderPillar(pillarsEl,'时柱',r.hour, dayGanIdx, false);
 
   const pad=n=>String(n).padStart(2,'0');
   const lunar = solarToLunar(y,m,d);
