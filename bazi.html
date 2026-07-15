@@ -161,15 +161,15 @@
   .pillar .gan{
     font-family:"Noto Serif SC",serif;font-weight:900;
     font-size:34px;line-height:1.1;color:var(--text-ink);
-    margin-bottom:6px;
+    margin-bottom:1px;
   }
   .pillar .zhi{
     font-family:"Noto Serif SC",serif;font-weight:900;
     font-size:34px;line-height:1.1;color:var(--text-ink);
-    margin-bottom:10px;
+    margin-bottom:1px;
   }
   .pillar .hidden{
-    margin-bottom:12px;min-height:16px;
+    margin-top:10px;margin-bottom:12px;min-height:16px;
   }
   .pillar .hidden-item{
     font-size:10px;color:var(--text-ink-dim);line-height:1.7;
@@ -179,9 +179,11 @@
     color:var(--text-ink);font-weight:700;margin-right:3px;
   }
   .pillar .wx{
-    font-size:10px;color:var(--text-ink-dim);margin-top:-8px;margin-bottom:14px;
+    font-size:10px;color:var(--brass-dim);
     letter-spacing:.04em;
   }
+  .pillar .wx.wx-gan{margin-bottom:8px;}
+  .pillar .wx.wx-zhi{margin-bottom:0;}
   .pillar .divider{
     width:16px;height:1px;background:var(--paper-line);
     margin:0 auto 12px;
@@ -232,6 +234,47 @@
     margin-top:6px;font-size:13px;color:var(--text-pale);
   }
   .yong-line b{color:var(--brass);}
+  .yong-click{
+    color:var(--brass);font-weight:700;cursor:pointer;
+    text-decoration:underline;text-decoration-style:dotted;text-underline-offset:3px;
+  }
+  .yong-hint{
+    font-size:10.5px;color:var(--text-dim);font-weight:400;margin-left:6px;
+    text-decoration:none;
+  }
+
+  .modal-overlay{
+    display:none;position:fixed;inset:0;background:rgba(10,11,16,.72);
+    align-items:center;justify-content:center;padding:20px;z-index:200;
+  }
+  .modal-overlay.show{display:flex;}
+  .modal-box{
+    background:linear-gradient(180deg, var(--paper) 0%, var(--paper-2) 100%);
+    border-radius:6px;padding:22px 20px 20px;
+    max-width:440px;width:100%;max-height:78vh;overflow-y:auto;
+    position:relative;box-shadow:0 20px 60px rgba(0,0,0,.5);
+  }
+  .modal-close{
+    position:absolute;top:14px;right:16px;
+    color:var(--text-ink-dim);font-size:16px;cursor:pointer;
+    width:26px;height:26px;display:flex;align-items:center;justify-content:center;
+  }
+  .modal-title{
+    font-family:"Noto Serif SC",serif;font-weight:700;font-size:17px;
+    color:var(--text-ink);margin-bottom:14px;padding-right:24px;
+  }
+  .modal-sec{margin-bottom:14px;}
+  .modal-h{
+    font-size:12px;color:var(--vermillion-dim);font-weight:700;
+    letter-spacing:.04em;margin-bottom:4px;
+  }
+  .modal-p{
+    font-size:13px;color:var(--text-ink);line-height:1.7;
+  }
+  .modal-caveat{
+    font-size:11px;color:var(--text-ink-dim);line-height:1.7;
+    margin-top:16px;padding-top:12px;border-top:1px solid var(--paper-line);
+  }
   .reason-line{
     margin-top:6px;font-size:12px;color:var(--text-dim);line-height:1.6;
   }
@@ -344,6 +387,14 @@
     </div>
   </div>
 
+</div>
+
+<div class="modal-overlay" id="yongModal">
+  <div class="modal-box">
+    <div class="modal-close" id="modalClose">✕</div>
+    <div class="modal-title" id="modalTitle"></div>
+    <div id="modalBody"></div>
+  </div>
 </div>
 
 <script>
@@ -539,6 +590,59 @@ function analyzeStrength(r){
   }
 
   return {verdict, bangScore, haoScore, elemScore, yongElem, yongElemName: yongElem!==null?FIVE_ELEM_NAMES[yongElem]:null, yongReason};
+}
+
+/* ============================================================
+   用神详细解读（点击用神弹出）
+   ============================================================ */
+const YONG_DETAIL = {
+  '木':{
+    ganzhi:'走甲、乙，或寅、卯的大运流年，相对是这一行力量得到补充、日子过得顺一些的阶段；走庚、辛、申、酉（克木）的运势，通常要更谨慎。',
+    dir:'东方；颜色青、绿色系。',
+    field:'木材林业、园艺花艺、纺织服装、教育文化、出版传媒、中医药（草药）相关领域。',
+    item:'绿色系饰品或摆件（翡翠、绿松石、东陵石等），也可以在家里/办公室东侧摆放绿植盆栽。'
+  },
+  '火':{
+    ganzhi:'走丙、丁，或巳、午的大运流年，相对是这一行力量得到补充、日子过得顺一些的阶段；走壬、癸、子、亥（克火）的运势，通常要更谨慎。',
+    dir:'南方；颜色红、紫、橙色系。',
+    field:'能源电力、餐饮美食、娱乐传媒、美容化妆、IT电子（光电）相关领域。',
+    item:'红色系饰品或摆件（红玛瑙、红宝石、朱砂等），家中南侧可用暖色调灯光或装饰。'
+  },
+  '土':{
+    ganzhi:'走戊、己，或辰、戌、丑、未的大运流年，相对是这一行力量得到补充、日子过得顺一些的阶段；走甲、乙、寅、卯（克土）的运势，通常要更谨慎。',
+    dir:'中央/四季交接之位；颜色黄、棕、大地色系。',
+    field:'房地产建筑、农业、陶瓷建材、仓储物流、保险相关领域。',
+    item:'黄色系饰品或摆件（黄玉、和田玉黄沁等），家中可摆放陶瓷器物或天然石类。'
+  },
+  '金':{
+    ganzhi:'走庚、辛，或申、酉的大运流年，相对是这一行力量得到补充、日子过得顺一些的阶段；走丙、丁、巳、午（克金）的运势，通常要更谨慎。',
+    dir:'西方；颜色白、银、金色系。',
+    field:'金融、法律、机械制造、五金珠宝、军警相关领域。',
+    item:'金属类饰品（金、银、铂金、不锈钢均可，不一定非黄金），家中西侧可摆放金属摆件。'
+  },
+  '水':{
+    ganzhi:'走壬、癸，或子、亥的大运流年，相对是这一行力量得到补充、日子过得顺一些的阶段；走戊、己、辰、戌、丑、未（克水）的运势，通常要更谨慎。',
+    dir:'北方；颜色黑、深蓝色系。',
+    field:'物流贸易、旅游航运、传播媒体、渔业、金融（水主流动）相关领域。',
+    item:'黑色/深蓝色系饰品或摆件（黑曜石、蓝宝石等），家中可摆放鱼缸或流水装饰。'
+  }
+};
+
+function openYongModal(elem){
+  const d = YONG_DETAIL[elem];
+  if(!d) return;
+  document.getElementById('modalTitle').textContent = `用神「${elem}」怎么用`;
+  document.getElementById('modalBody').innerHTML = `
+    <div class="modal-sec"><div class="modal-h">大运流年</div><div class="modal-p">${d.ganzhi}</div></div>
+    <div class="modal-sec"><div class="modal-h">方位与颜色</div><div class="modal-p">${d.dir}</div></div>
+    <div class="modal-sec"><div class="modal-h">行业倾向</div><div class="modal-p">${d.field}</div></div>
+    <div class="modal-sec"><div class="modal-h">饰品摆件</div><div class="modal-p">${d.item}</div></div>
+    <div class="modal-caveat">以上是命理术数框架下的应用方式，不是被科学验证过的因果关系；大运流年是相对有参考价值的部分，方位、行业、饰品这些更偏民俗应用，可以当作一种自洽的分析视角，不必当成决定性的规则。</div>
+  `;
+  document.getElementById('yongModal').classList.add('show');
+}
+function closeYongModal(){
+  document.getElementById('yongModal').classList.remove('show');
 }
 
 /* ============================================================
@@ -795,7 +899,9 @@ function renderPillar(container, labelZh, p, dayGanIdx, isDay){
     <div class="label">${labelZh}</div>
     <div class="sg">${sgLabel}</div>
     <div class="gan">${GAN[p.gan]}</div>
+    <div class="wx wx-gan">${GAN_WX[p.gan]}</div>
     <div class="zhi">${ZHI[p.zhi]}</div>
+    <div class="wx wx-zhi">${ZHI_WX[p.zhi]}</div>
     <div class="hidden">${hiddenHtml}</div>
     <div class="divider"></div>
     <div class="nayin">${nayinOf(p.idx)}</div>
@@ -922,10 +1028,13 @@ function renderStrength(r, a){
       <div class="bar-val">${a.haoScore.toFixed(1)}</div>
     </div>
     <div class="verdict-line">日主<span class="tag">${a.verdict}</span></div>
-    <div class="yong-line">${a.yongElemName ? `用神：<b>${a.yongElemName}</b>` : '用神：需结合调候等因素另行判断'}</div>
+    <div class="yong-line">${a.yongElemName ? `用神：<span class="yong-click" data-elem="${a.yongElemName}">${a.yongElemName}<span class="yong-hint">点击查看解读 ›</span></span>` : '用神：需结合调候等因素另行判断'}</div>
     <div class="reason-line">${a.yongReason}</div>
     <div class="elem-row">${elemChips}</div>
   `;
+
+  const link = body.querySelector('.yong-click');
+  if(link){ link.onclick = ()=> openYongModal(link.dataset.elem); }
 }
 
 document.getElementById('goBtn').onclick = function(){
@@ -959,6 +1068,12 @@ document.getElementById('goBtn').onclick = function(){
 
 // 默认展示一次示例
 document.getElementById('goBtn').click();
+
+// 用神弹窗：点关闭按钮或点击遮罩层背景都可关闭
+document.getElementById('modalClose').onclick = closeYongModal;
+document.getElementById('yongModal').addEventListener('click', function(e){
+  if(e.target === this) closeYongModal();
+});
 </script>
 </body>
 </html>
